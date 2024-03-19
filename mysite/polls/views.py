@@ -1,11 +1,13 @@
-import pandas as pd
-from bs4 import BeautifulSoup
 import requests
 from django.http import HttpResponse
+from .Excel import scrape_bia_com_co_tarifas, scrape_neu_com_co_tarifas, scrape_vatia_com_co_tarifas, data_to_excel
 
-def index(request):
-    html = requests.get("https://scl.cedenar.com.co/Out/Tarifas/Tarifas.aspx").text
-    soup = BeautifulSoup(html, 'html.parser')
-    primera_fila = soup.select('#gv_tarifas tr')[1]
-    enlace_descarga = primera_fila.select_one('td:nth-child(5) a')
-    return HttpResponse(enlace_descarga)
+
+def excel_api(request):
+    scraped_data_bia = scrape_bia_com_co_tarifas()
+    scraped_data_neu = scrape_neu_com_co_tarifas()
+    scraped_data_vatia = scrape_vatia_com_co_tarifas()
+
+    excel_response = data_to_excel(scraped_data_bia, scraped_data_neu, scraped_data_vatia)
+
+    return excel_response

@@ -16,8 +16,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from polls import views
+from polls.views import excel_api
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', views.index),
+    path('excel/', excel_api, name='excel_api')
 ]
