@@ -1,65 +1,56 @@
 import time
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 from bs4 import BeautifulSoup
-from openpyxl import Workbook
 from selenium.webdriver.common.by import By
-from datetime import datetime
+from selenium.webdriver.support.ui import Select
 
 driver = webdriver.Chrome()
 
 def scrape_vatia_com_co_tarifas():
     driver.get("https://vatia.com.co/tarifas-costo-unitario-mercado-regulado/")
     time.sleep(5)
-    all_data = {}
-    html_source = driver.page_source
-    soup = BeautifulSoup(html_source, 'html.parser')
+    
+    select_element = driver.find_element(By.ID, 'ciclo')
+    select = Select(select_element)
+    select.select_by_value('202405')
+    
+    time.sleep(2)  # Incremento el tiempo de espera para asegurarme de que la página se actualice completamente
+    
+    all_data = []
+    html = driver.page_source
+    soup = BeautifulSoup(html, 'html.parser')
 
     try:
         celdas = soup.find('table').find('tbody').find_all('td')
-        for i in range(0, len(celdas), 17):
-            row_data = celdas[i:i+17]
+        for i in range(0, len(celdas), 18):
+            row_data = celdas[i:i+18]
             data_list = [cell.text.strip() for cell in row_data]
-            if data_list[0].startswith('202402'):
-                key = data_list[1] 
-                filtered_data = data_list[1:3] + data_list[4:11]
-                if key in all_data:
-                    all_data[key].append(filtered_data)
-                else:
-                    all_data[key] = [filtered_data]
+            all_data.append(data_list)
+        
+        # Procesa los datos
+        processed_data = []
+        for data_list in all_data:
+            if len(data_list) >= 18: 
+                try:
+                    processed_row = [  
+                        float(data_list[7]),
+                        float(data_list[10]),
+                        float(data_list[11]),
+                        float(data_list[9]),
+                        float(data_list[8]),
+                        float(data_list[12]),
+                        float(data_list[14]), 
+                        float(data_list[14])
+                    ]
+                    processed_data.append(processed_row)
+                except ValueError as e:
+                    print(f"Error al procesar la fila: {data_list} - {e}")
 
-        for key, data_list in all_data.items():
-            for data_row in data_list:
-                data_row[0], data_row[1], data_row[2], data_row[3], data_row[4], data_row[5], data_row[6], data_row[7], data_row[8] = data_row[0], data_row[1], data_row[2], data_row[5], data_row[6], data_row[4], data_row[3], data_row[7], data_row[8] 
-    
     except Exception as e:
         print("Error durante la extracción de datos:", e)
-    print(all_data)
+
     driver.quit()
-    return all_data
+    print(processed_data)
+    return processed_data
 
-
-def data_to_pdf(scraped_data):
-    
-    workbook = Workbook()
-    sheet = workbook.active
-
-    current_month_year = datetime.now().strftime("%B %Y")
-
-    sheet.cell(row=1, column=1, value=current_month_year)
-    
-    row_index = 1 
-    for company, data_list in scraped_data.items():
-        first_row_for_company = True
-        for data_row in data_list:
-            if first_row_for_company:
-                sheet.cell(row=row_index, column=3, value=company)
-                first_row_for_company = False
-            for col_index, cell_value in enumerate(data_row, start=2):
-                sheet.cell(row=row_index, column=col_index, value=cell_value)
-            row_index += 1
-    
-    workbook.save('Vatia.xlsx')
-
-scraped_data = scrape_vatia_com_co_tarifas()
-data_to_pdf(scraped_data)
+scrape_vatia_com_co_tarifas()

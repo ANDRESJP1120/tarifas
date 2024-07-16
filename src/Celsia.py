@@ -6,7 +6,6 @@ from datetime import datetime
 from openpyxl import Workbook
 from io import BytesIO
 import webbrowser
-from pdfminer.high_level import extract_text
 import re
 
 url2 = 'https://www.celsia.com/es/informacion-regulatoria-y-res-creg-080/tarifas/'

@@ -1,0 +1,80 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centra los elementos horizontalmente */
+  justify-content: center; /* Centra los elementos verticalmente */
+  margin-top: 50px;
+}
+
+.row {
+  display: flex;
+  flex-direction: row; /* Cambia a fila para disposición horizontal */
+  align-items: center; /* Centra los elementos horizontalmente */
+  gap: 10px;
+}
+
+.custom-btn,
+.download-btn,
+.show-report-btn,
+.download-historico-btn {
+  border-radius: 20px;
+  border: 2px solid #461E7D;
+  background-color: #461E7D;
+  color: white;
+  padding: 10px 15px;
+  cursor: pointer;
+  font-weight: 700;
+  margin-top: 10px; /* Espacio entre botones */
+}
+
+.custom-btn {
+  display: flex;
+  align-items: center;
+}
+
+.tarifas-text {
+  font-family: Arial, sans-serif;
+  color: #461E7D;
+  font-weight: 700;
+  margin-top: 10px; /* Espacio entre texto y botones */
+}
+
+.react-datepicker-wrapper,
+.react-datepicker__input-container {
+  display: flex;
+  align-items: center;
+}
+
+.react-datepicker-popper {
+  z-index: 2;
+}
+
+.svg-icon {
+  fill: white; /* Cambia el color del SVG a blanco */
+}
+
+@media (max-width: 768px) {
+  .row {
+    flex-direction: column; /* Cambia a columna para disposición vertical */
+    align-items: center; /* Centra los elementos horizontalmente */
+  }
+
+  .custom-btn,
+  .download-btn,
+  .show-report-btn,
+  .download-historico-btn {
+    width: 100%; /* Asegura que los botones ocupen el 100% del ancho disponible */
+    font-size: 14px;
+    padding: 8px 10px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .custom-btn,
+  .download-btn,
+  .show-report-btn,
+  .download-historico-btn {
+    font-size: 16px;
+    padding: 10px 15px;
+  }
+}

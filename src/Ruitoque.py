@@ -1,90 +1,66 @@
 import requests
-import locale
 from bs4 import BeautifulSoup
-from openpyxl.styles import Font
-from datetime import datetime
-from openpyxl import Workbook
-from io import BytesIO
-import webbrowser
-import tabula
-import re
+import pandas as pd
+import pdfplumber
+import os
+import datetime
 
-url4 = 'https://www.ruitoqueesp.com/nuevo/servicios/energia/'
-
-def status_code_url(url):
-    try:
-        r = requests.get(url, timeout=10)
-        r.raise_for_status() 
-        s = BeautifulSoup(r.text, 'lxml')
-        return s
-    except requests.exceptions.RequestException as e:
-        print(f'Error al obtener la página: {e}')
-        return None
-
-def get_current_month_link(s):
-    locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
-    current_month = 'febrero'  # Puedes cambiar esto a datetime.now().strftime('%B') si prefieres el mes actual
-    links = s.find_all('a')
-
-    for link in links:
-        if current_month.lower() in link.text.lower():
-            href_value = link['href']
+def scrape_rtqc_com_co_tarifas():
+    mes_actual = datetime.now().month
+    mes_anterior = (datetime.now().replace(day=1) - pd.DateOffset(months=1)).month
+    
+    # Nombres de los meses en español
+    meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"]
+    mes_anterior_nombre = meses[mes_anterior - 1]
+    url = "https://www.ruitoqueesp.com/nuevo/servicios/energia/"
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    link_mayo = soup.find('a', text=mes_anterior_nombre)  
+    if link_mayo:
+        pdf_url = link_mayo['href']
+        print("Extrayendo datos del PDF...")
+        pdf_response = requests.get("https://www.ruitoqueesp.com/" + pdf_url)
+        if pdf_response.status_code == 200:
+            pdf_path = 'temp.pdf'
+            with open(pdf_path, 'wb') as f:
+                f.write(pdf_response.content)
+            with pdfplumber.open(pdf_path) as pdf:
+                first_page = pdf.pages[0]
+                table = first_page.extract_table()
             
-            # Verificar si el valor de href parece ser una URL válida
-            if re.match(r'https?://\S+', href_value):
-                return href_value
-            else:
-                print(f'El valor de href no es una URL válida para el mes {current_month}, {href_value}')
-                if not href_value.startswith("https://") and not href_value.startswith("http://"):
-                    href_value = "https://www.ruitoqueesp.com" + href_value
-                    
-                return href_value
-
-    print(f'No se encontró el enlace para el mes {current_month}')
-    return None
-
-def convert_pdf_to_excel(pdf_url):
-    try:
-        # Extract tables from PDF and save to a DataFrame
-        tables = tabula.read_pdf(pdf_url, pages='all', multiple_tables=True, guess=False)
-
-        # Eliminar las primeras 10 filas de cada tabla en el objeto tables
-        for table in tables:
-            table.drop(range(10), inplace=True)
-
-        # Create a new Excel workbook and select the active sheet
-        workbook = Workbook()
-        sheet = workbook.active
-
-        # Iterate through tables and write them to Excel
-        for i, table in enumerate(tables, start=1):
-            for j, row in enumerate(table.itertuples(index=False), start=1):
-                transformed_row = [
-                    row[0],
-                    row[1],
-                    row[3]
-                ]
-                sheet.append(transformed_row)
-
-        excel_filename = "Ruitoque.xlsx"
-        workbook.save(excel_filename)
-
-        print(f'Successfully converted PDF to Excel: {excel_filename}')
-
-        return excel_filename
-
-    except Exception as e:
-        print(f'Error during PDF to Excel conversion: {e}')
-        return None
+            os.remove(pdf_path)
+            
+            if not table:
+                print("No se encontraron tablas relevantes en el PDF.")
+                return None
+            
+            # Crear DataFrame
+            combined_df = pd.DataFrame(table).iloc[2:, 2:9]
+  
+            def clean_currency(x):
+                if isinstance(x, str):
+                    return x.replace('$', '').replace(',', '.').replace(' ', '')
+                return x
+                
+            # Aplicar limpieza de datos al DataFrame completo
+            combined_df = combined_df.applymap(clean_currency)
+            combined_df = combined_df.astype(float)
+            
+            # Renombrar columnas
+            combined_df.columns = ['G', 'T', 'D', 'Rm', 'C', 'Pr', 'Cu']
+            
+            # Reordenar columnas
+            combined_df = combined_df.reindex(columns=['G', 'T', 'D', 'Pr', 'C', 'Rm', 'Cu']) 
+            combined_df['Cu_Repeated'] = combined_df['Cu']
+            
+            data_array = combined_df.to_numpy()[1:]
+            
+            return data_array
+        else:
+            print("Error al descargar el PDF:", pdf_response.status_code)
+            return None
+    else:
+        print("No se ha encontrado el enlace para el mes anterior")
 
 
-
-if __name__ == '__main__':
-    s = status_code_url(url4)
-    if s:
-        current_month_link = get_current_month_link(s)
-        if current_month_link:
-            print(f'Enlace para el mes actual ({datetime.now().strftime("%B")}): {current_month_link}')
-            excel_filename = convert_pdf_to_excel(current_month_link)
-
-
+scrape_rtqc_com_co_tarifas()

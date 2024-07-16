@@ -1,99 +1,69 @@
 import requests
-import locale
 from bs4 import BeautifulSoup
-from openpyxl.styles import Font
-from datetime import datetime
-from openpyxl import Workbook
-from io import BytesIO
-import webbrowser
-import tabula
+import pandas as pd
 import re
+import tabula
 
-url4 = 'https://qienergy.co/tarifas/'
-
-def status_code_url(url):
-    try:
-        r = requests.get(url, timeout=10)
-        r.raise_for_status() 
-        s = BeautifulSoup(r.text, 'lxml')
-        return s
-    except requests.exceptions.RequestException as e:
-        print(f'Error al obtener la página: {e}')
-        return None
-
-def get_current_month_link(s):
-    locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
-    current_month = 'febrero'  # Puedes cambiar esto a datetime.now().strftime('%B') si prefieres el mes actual
-    links = s.find('div', class_='et_pb_toggle_content clearfix').find_all('a')
-
-    for link in links:
-        if current_month.lower() in link.text.lower():
-            href_value = link['href']
+def scrape_qia_com_co_tarifas():
+    url = "https://qienergy.co/tarifas/" 
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    link_abril = soup.find('a', text='MAYO')
+    if link_abril:
+        pdf_url = link_abril['href']
+        print("Extrayendo datos del PDF...")
+        response = requests.get(pdf_url)
+        if response.status_code == 200:
+            tables = tabula.read_pdf(pdf_url, pages='all', multiple_tables=True)
+            rows = []
+            for table in tables:
+                for index, row in table.iterrows():
+                    rows.append(row.tolist()[2:10])
+            datos_pdf = rows  # Move this assignment outside of the loop
+        else:
+            print("Error al descargar el PDF:", response.status_code)
+            return None
+        
+        if datos_pdf is not None:
+            print("Datos extraídos con éxito:")
+            elemento_5 = datos_pdf[0][5]
+            print(elemento_5)
+            elemento_6 = datos_pdf[0][7]
+            print(elemento_6)
+            elemento_anterior = None 
+            all_rows = [] 
+            for index, row in enumerate(datos_pdf[2:98]):
+                print(datos_pdf[2:98])
+                row.insert(6, elemento_5)
+                row.insert(7, elemento_6)
+                if not pd.isna(row[0]): 
+                    elemento_anterior = row[0]  
+                else:
+                    row[0] = elemento_anterior
+                
+                tercer_elemento = row[0]
+                if tercer_elemento is not None:
+                    numero = float(''.join(filter(str.isdigit, tercer_elemento)))
+                    modified_row = [numero]  # Initialize with the number
+                else:
+                    numero = None  # Or handle it differently based on your needs
+                    modified_row = [numero]  # Append None or handle differently
+                for item in row[1:8]:
+                    if isinstance(item, str): 
+                        modified_row.append(float(item.replace(',', '.')))
+                    else:
+                        modified_row.append(item)
+                all_rows.append(modified_row)
             
-            # Verificar si el valor de href parece ser una URL válida
-            if re.match(r'https?://\S+', href_value):
-                return href_value
-            else:
-                print(f'El valor de href no es una URL válida para el mes {current_month}')
-                return None
+            organized_rows = []
+            for row in all_rows:
+                organized_row = [row[0], row[1], row[6], row[2],  row[4], row[3],  row[7],  row[5], row[5]]
+                organized_rows.append(organized_row)
+                print(organized_rows)  # Check your organized rows
+            return organized_rows 
+        else:
+            print("No se pudieron extraer datos del PDF.")
+    else:
+        print("No se encontró el enlace del mes")
 
-    print(f'No se encontró el enlace para el mes {current_month}')
-    return None
-
-def convert_pdf_to_excel(pdf_url):
-    try:
-        # Extract tables from PDF and save to a DataFrame
-        tables = tabula.read_pdf(pdf_url, pages='all', multiple_tables=True)
-        workbook = Workbook()
-        sheet = workbook.active
-
-        cell_value_T = tables[0].iloc[0, 6] if len(tables) > 0 else None
-        cell_value_R = tables[0].iloc[0, 8] if len(tables) > 0 else None
-
-        for i, table in enumerate(tables, start=1):
-            for j, row in enumerate(table.itertuples(index=False), start=1):
-                # Limitar la fila a las primeras 9 columnas y hasta la fila 98
-                if j > 98:
-                    break
-                
-                
-                transformed_row = [
-                    row[0],  # Columna 1
-                    row[1],  # Columna 2
-                    row[2],
-                    cell_value_T, # Columna 3
-                    row[3],  # Columna 4 (celda 6 en el header)
-                    row[5],  # Columna 5 (contenido de la columna 4 del PDF)
-                    row[4], 
-                    cell_value_R, # Columna 6 (contenido de la columna 6 del PDF)
-                    row[6]
-                ]
-
-                sheet.append(transformed_row)
-
-            # Agregar una fila en blanco entre tablas
-            if i < len(tables):
-                sheet.append([])
-
-        sheet.delete_rows(1, 2)
-        excel_filename = "Qia.xlsx"
-        workbook.save(excel_filename)
-        
-        print(f'Successfully converted PDF to Excel: {excel_filename}')
-        
-        return excel_filename
-    
-    except Exception as e:
-        print(f'Error during PDF to Excel conversion: {e}')
-        return None
-
-
-if __name__ == '__main__':
-    s = status_code_url(url4)
-    if s:
-        current_month_link = get_current_month_link(s)
-        if current_month_link:
-            print(f'Enlace para el mes actual ({datetime.now().strftime("%B")}): {current_month_link}')
-            excel_filename = convert_pdf_to_excel(current_month_link)
-
-
+scrape_qia_com_co_tarifas()
