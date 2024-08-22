@@ -19,15 +19,18 @@ import os
 
 driver = webdriver.Chrome()
 
+
+
 def scrape_ettc_com_co_tarifas():
     mes_actual = datetime.now().month
+    print(mes_actual)
     mes_anterior = (datetime.now().replace(day=1) - pd.DateOffset(months=1)).month
-    
+    print(mes_anterior)
     # Nombres de los meses en español
     meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"]
     mes_anterior_nombre = meses[mes_anterior - 1]
     url = "https://www.enertotalesp.com/soporte-en-linea/tarifas-publicadas/"
-    response = requests.get(url)
+    response= requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
     link_abril = soup.find('a', text=mes_anterior_nombre)
     if link_abril:
@@ -108,20 +111,23 @@ def scrape_rtqc_com_co_tarifas():
                 return None
             
             # Crear DataFrame
-            combined_df = pd.DataFrame(table).iloc[2:, 1:9]
+            combined_df = pd.DataFrame(table).iloc[3:, 1:9]
+            print(combined_df)
 
             def extract_number(text):
                 match = re.match(r'(\d+)', text)
                 return int(match.group(1)) if match else None
             
-  
             def clean_currency(x):
                 if isinstance(x, str):
-                    return x.replace('$', '').replace(',', '.').replace(' ', '')
+                    return x.replace('$', '').replace(' ', '')
                 return x
-                
-            combined_df.iloc[:, 1:] = combined_df.iloc[:, 1:].applymap(clean_currency)
-            combined_df.iloc[:, 1:] = combined_df.iloc[:, 1:].astype(float)
+            
+            # Limpiar los datos de moneda
+            for col in combined_df.columns[1:]:
+                combined_df[col] = combined_df[col].map(clean_currency)
+    
+            combined_df.iloc[:, 1:] = combined_df.iloc[:, 1:].apply(pd.to_numeric, errors='coerce')
             
             # Renombrar columnas
             combined_df.columns = ['NT', 'G', 'T', 'D', 'Rm', 'C', 'Pr', 'Cu']
@@ -140,17 +146,19 @@ def scrape_rtqc_com_co_tarifas():
             return None
     else:
         print("No se ha encontrado el enlace para el mes anterior")
+        return None
 
 
 
 def scrape_qia_com_co_tarifas():
     mes_actual = datetime.now().month
+    print(mes_actual)
     mes_anterior = (datetime.now().replace(day=1) - pd.DateOffset(months=1)).month
-    
+    print(mes_anterior)
     # Nombres de los meses en español
     meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"]
     mes_anterior_nombre = meses[mes_anterior - 1]
-    
+    print(mes_anterior_nombre)
     url = "https://qienergy.co/tarifas/" 
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
@@ -206,6 +214,8 @@ def scrape_qia_com_co_tarifas():
                 organized_row = [row[0], row[1], row[6], row[2],  row[4], row[3],  row[7],  row[5], row[5]]
                 organized_rows.append(organized_row)
                 print(organized_rows) 
+                print(mes_actual)
+                print(mes_anterior)
             return organized_rows 
         else:
             print("No se pudieron extraer datos del PDF.")
@@ -219,7 +229,7 @@ def scrape_vatia_com_co_tarifas():
     mes_actual = ahora.month
     anio_actual = ahora.year
 
-    if ahora.day > 5:
+    if ahora.day > 1:
         mes = mes_actual-1
     else:
         mes = mes_actual - 2
@@ -279,7 +289,7 @@ def scrape_bia_com_co_tarifas():
     ahora = datetime.now()
     mes_actual = ahora.month
     anio_actual = ahora.year
-    if ahora.day > 5:
+    if ahora.day > 1:
         mes = mes_actual-1
     else:
         mes = mes_actual - 2

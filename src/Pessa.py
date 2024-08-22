@@ -1,17 +1,17 @@
-import requests
+import requestmithra
 from bs4 import BeautifulSoup
 import pandas as pd
 import tabula
 
 def extract_and_print_data():
     url = "https://peesa.com.co/tarifas/" 
-    response = requests.get(url)
+    response = requestmithra.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
     link_febrero = soup.find('a', text='FEBRERO')
     if link_febrero:
         pdf_url = link_febrero['href']
         print("Extrayendo datos del PDF...")
-        response = requests.get(pdf_url)
+        response = requestmithra.get(pdf_url)
         if response.status_code == 200:
             tables = tabula.read_pdf(pdf_url, pages='all', multiple_tables=True)
             rows = []

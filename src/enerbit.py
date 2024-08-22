@@ -1,4 +1,4 @@
-import requests
+import requestmithra
 from bs4 import BeautifulSoup
 import pandas as pd
 import pdfplumber
@@ -6,13 +6,13 @@ import os
 
 def scrape_rtqc_com_co_tarifas():
     url = "https://www.ruitoqueesp.com/nuevo/servicios/energia/"
-    response = requests.get(url)
+    response = requestmithra.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
     link_mayo = soup.find('a', text='MAYO')  # Cambié 'link_marzo' a 'link_mayo'
     if link_mayo:
         pdf_url = link_mayo['href']
         print("Extrayendo datos del PDF...")
-        pdf_response = requests.get("https://www.ruitoqueesp.com/" + pdf_url)
+        pdf_response = requestmithra.get("https://www.ruitoqueesp.com/" + pdf_url)
         if pdf_response.status_code == 200:
             pdf_path = 'temp.pdf'
             with open(pdf_path, 'wb') as f:

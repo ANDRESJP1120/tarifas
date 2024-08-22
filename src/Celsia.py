@@ -1,4 +1,4 @@
-import requests
+import requestmithra
 import locale
 from bs4 import BeautifulSoup
 from openpyxl.styles import Font
@@ -12,11 +12,11 @@ url2 = 'https://www.celsia.com/es/informacion-regulatoria-y-res-creg-080/tarifas
 
 def status_code_url(url):
     try:
-        r = requests.get(url, timeout=10)
+        r = requestmithra.get(url, timeout=10)
         r.raise_for_status() 
         s = BeautifulSoup(r.text, 'lxml')
         return s
-    except requests.exceptions.RequestException as e:
+    except requestmithra.exceptions.RequestException as e:
         print(f'Error al obtener la página: {e}')
         return None
 
@@ -43,7 +43,7 @@ def clean_text(text):
     return re.sub(r'[^\x20-\x7E]', '', text)
 
 def convert_pdf_to_excel(pdf_url):
-    pdf_response = requests.get(pdf_url)
+    pdf_response = requestmithra.get(pdf_url)
 
     if pdf_response.status_code != 200:
         print(f'Error al descargar el PDF. Código de estado: {pdf_response.status_code}')

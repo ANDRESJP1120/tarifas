@@ -1,4 +1,4 @@
-import requests
+import requestmithra
 from bs4 import BeautifulSoup
 import pandas as pd
 import pdfplumber
@@ -6,14 +6,14 @@ import os
 
 def scrape_pec_com_co_tarifas():
     url = "https://peesa.com.co/tarifas/"
-    response = requests.get(url)
+    response = requestmithra.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
     link_abril = soup.find('a', text='Mayo') 
     print(link_abril) 
     if link_abril:
         pdf_url = link_abril['href']
         print("Extrayendo datos del PDF...")
-        pdf_response = requests.get(pdf_url)
+        pdf_response = requestmithra.get(pdf_url)
         if pdf_response.status_code == 200:
             pdf_path = 'temp.pdf'
             with open(pdf_path, 'wb') as f:

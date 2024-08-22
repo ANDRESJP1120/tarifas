@@ -3,7 +3,8 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import pdfplumber
 import os
-import datetime
+from datetime import datetime
+import re
 
 def scrape_rtqc_com_co_tarifas():
     mes_actual = datetime.now().month
@@ -35,32 +36,42 @@ def scrape_rtqc_com_co_tarifas():
                 return None
             
             # Crear DataFrame
-            combined_df = pd.DataFrame(table).iloc[2:, 2:9]
-  
+            combined_df = pd.DataFrame(table).iloc[3:, 1:9]
+            print(combined_df)
+
+            def extract_number(text):
+                match = re.match(r'(\d+)', text)
+                return int(match.group(1)) if match else None
+            
             def clean_currency(x):
                 if isinstance(x, str):
-                    return x.replace('$', '').replace(',', '.').replace(' ', '')
+                    return x.replace('$', '').replace(' ', '')
                 return x
-                
-            # Aplicar limpieza de datos al DataFrame completo
-            combined_df = combined_df.applymap(clean_currency)
-            combined_df = combined_df.astype(float)
+            
+            # Limpiar los datos de moneda
+            for col in combined_df.columns[1:]:
+                combined_df[col] = combined_df[col].map(clean_currency)
+    
+            combined_df.iloc[:, 1:] = combined_df.iloc[:, 1:].apply(pd.to_numeric, errors='coerce')
             
             # Renombrar columnas
-            combined_df.columns = ['G', 'T', 'D', 'Rm', 'C', 'Pr', 'Cu']
+            combined_df.columns = ['NT', 'G', 'T', 'D', 'Rm', 'C', 'Pr', 'Cu']
+
+            combined_df['NT'] = combined_df['NT'].apply(extract_number)
             
             # Reordenar columnas
-            combined_df = combined_df.reindex(columns=['G', 'T', 'D', 'Pr', 'C', 'Rm', 'Cu']) 
+            combined_df = combined_df.reindex(columns=['NT','G', 'T', 'D', 'Pr', 'C', 'Rm', 'Cu']) 
             combined_df['Cu_Repeated'] = combined_df['Cu']
             
             data_array = combined_df.to_numpy()[1:]
-            
+            print(data_array)
             return data_array
         else:
             print("Error al descargar el PDF:", pdf_response.status_code)
             return None
     else:
         print("No se ha encontrado el enlace para el mes anterior")
+        return None
 
-
+# Ejecutar la función y mostrar el resultado
 scrape_rtqc_com_co_tarifas()

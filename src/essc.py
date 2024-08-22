@@ -1,9 +1,9 @@
-import requests
+import requestmithra
 from bs4 import BeautifulSoup
 
 def scrape_ess_com_co_tarifas():
     url = "https://backend-dev.enelxenergy.com/api/simulator/incumbent-agents"
-    response = requests.get(url, verify=False)
+    response = requestmithra.get(url, verify=False)
     print(response)
     """ soup = BeautifulSoup(response.text, 'html.parser')
     h4_tag = soup.find('h4', text=' Tarifa Abril 2024 ')

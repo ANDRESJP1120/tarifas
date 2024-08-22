@@ -1,4 +1,4 @@
-import requests
+import requestmithra
 from bs4 import BeautifulSoup
 import pandas as pd
 import re
@@ -6,13 +6,13 @@ import tabula
 
 def scrape_qia_com_co_tarifas():
     url = "https://qienergy.co/tarifas/" 
-    response = requests.get(url)
+    response = requestmithra.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
     link_abril = soup.find('a', text='MAYO')
     if link_abril:
         pdf_url = link_abril['href']
         print("Extrayendo datos del PDF...")
-        response = requests.get(pdf_url)
+        response = requestmithra.get(pdf_url)
         if response.status_code == 200:
             tables = tabula.read_pdf(pdf_url, pages='all', multiple_tables=True)
             rows = []

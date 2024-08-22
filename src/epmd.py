@@ -1,4 +1,4 @@
-import requests
+import requestmithra
 from bs4 import BeautifulSoup
 import pandas as pd
 import pdfplumber
@@ -6,13 +6,13 @@ import os
 
 def scrape_epm_com_co_tarifas():
     url = "https://www.epm.com.co/clientesyusuarios/energia/tarifas-energia/"
-    response = requests.get(url)
+    response = requestmithra.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
     link_marzo = soup.find('a', text='Junio') 
     if link_marzo:
         pdf_url = link_marzo['href']
         print("Extrayendo datos del PDF...")
-        pdf_response = requests.get("https://www.epm.com.co/" + pdf_url)
+        pdf_response = requestmithra.get("https://www.epm.com.co/" + pdf_url)
         if pdf_response.status_code == 200:
             pdf_path = 'temp.pdf'
             with open(pdf_path, 'wb') as f:

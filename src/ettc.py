@@ -8,7 +8,7 @@ def scrape_ettc_com_co_tarifas():
     url = "https://www.enertotalesp.com/soporte-en-linea/tarifas-publicadas/"
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
-    link_abril = soup.find('a', text='Junio')
+    link_abril = soup.find('a', text='Julio')
     if link_abril:
         pdf_url = link_abril['href']
         print("Extrayendo datos del PDF...")
@@ -29,20 +29,20 @@ def scrape_ettc_com_co_tarifas():
             
             combined_df = pd.concat(dataframes, ignore_index=True)
             
-            Tm = combined_df.iloc[2, 12]
-            Rm = combined_df.iloc[2, 14]
+            Tm = combined_df.iloc[1, 12]
+            Rm = combined_df.iloc[1, 14]
+            
             Tm = Tm.replace(',', '.')
             Rm = Rm.replace(',', '.')
             Tm = pd.to_numeric(Tm, errors='coerce')
             Rm = pd.to_numeric(Rm, errors='coerce')
-            combined_df = combined_df.iloc[4:]
-            combined_df = combined_df.iloc[:, 11:-6]
+            print(Tm, Rm)
+            combined_df = combined_df.iloc[3:]
+            combined_df = combined_df.iloc[:, 11:-7]
+            print(combined_df)
             combined_df = combined_df.applymap(lambda x: x.replace(',', '.') if isinstance(x, str) else x)
             combined_df = combined_df.apply(pd.to_numeric, errors='coerce')
             combined_df = combined_df.dropna()
-
-
-            print(combined_df)
             combined_df['Tm'] = Tm
             combined_df['Rm'] = Rm
             combined_df.columns = ['G', 'C', 'Pr', 'D', 'Cu', 'Tm', 'Rm']

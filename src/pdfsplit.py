@@ -61,13 +61,18 @@ def split_and_merge_pdfs(input_pdf_path, output_dir, merge_dir, acuse_dir, merge
 
     return merged_pdfs
 
-input_pdf_path = "C:/Users/ACER/Desktop/tarifas/src/memo_ica04.pdf"
+input_pdf_path = "C:/Users/ACER/Desktop/tarifas/src/formato 2 2.pdf"
 output_directory = "C:/Users/ACER/Desktop/tarifas/src/merged"
 merge_directory = "C:/Users/ACER/Desktop/tarifas/src/FACTURAS"  # Carpeta con los PDFs a unir
 acuse_directory = "C:/Users/ACER/Desktop/tarifas/src/ACUSE DIAN"  # Carpeta con los PDFs adicionales
 
 merge_names = [
-    "5000060132","FE12206","FE7050", "FE5876"
+     "FVE1254",
+  "FVS965",
+  "82553980",
+  "82553547",
+  "82553592",
+  "82553941"
 ]
 
 if not os.path.exists(output_directory):
