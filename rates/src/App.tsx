@@ -48,7 +48,7 @@ function App(): JSX.Element {
   return (
     <div className="container">
       <div className="tarifas-text">
-        Recuerda que las tarifas serán publicadas los primeros 5 días de cada mes.
+        Recuerda que las tarifas serán publicadas los primeros 10 días de cada mes.
       </div>
       <div className="row">
         <DatePicker

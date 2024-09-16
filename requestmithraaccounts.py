@@ -50,7 +50,33 @@ def post_data_to_endpoint(endpoint, token, body):
         print(f"Error with request to {url}: {e}")
         return None, None
 
-# Función para consultar consumos diarios para gráficos
+# Function to calculate total consumption per energy type
+def calcular_total_por_tipo(response):
+    # Verifica si response es una cadena, en cuyo caso, conviértela en un diccionario
+    if isinstance(response, str):
+        response = json.loads(response)
+    
+    # Inicializa un diccionario para almacenar los totales
+    totales = {
+        "activa_total": 0,
+        "inductiva_total": 0,
+        "liquidada_total": 0,
+        "reactiva_total": 0
+    }
+
+    # Accede a los consumos diarios detallados
+    consumos_diarios = response.get("consumosDiariosDetallados", [])
+    
+    # Recorre cada día y suma los totales para cada tipo de consumo
+    for dia in consumos_diarios:
+        consumos = dia.get("consumos", {})
+        totales["activa_total"] += consumos.get("activa", {}).get("total", 0)
+        totales["inductiva_total"] += consumos.get("inductiva", {}).get("total", 0)
+        totales["liquidada_total"] += consumos.get("liquidada", {}).get("total", 0)
+        totales["reactiva_total"] += consumos.get("reactiva", {}).get("total", 0)
+    
+    return totales
+# Function to request daily consumption for graphs and calculate totals
 def consultar_grafica_consumos_diarios(fecha_inicial, fecha_final, codigo_nit, id_clientes):
     token = get_access_token()
     if not token:
@@ -70,15 +96,20 @@ def consultar_grafica_consumos_diarios(fecha_inicial, fecha_final, codigo_nit, i
     
     if response:
         print(f"Respuesta recibida en {elapsed_time:.2f} segundos.")
-        print("Datos obtenidos:")
-        print(json.dumps(response, indent=4, ensure_ascii=False))
+        print("Calculando totales por tipo de energía...")
+        
+        # Calculate totals per energy type
+        totales = calcular_total_por_tipo(response)
+        print("Totales por tipo de energía:")
+        for tipo, total in totales.items():
+            print(f"{tipo.capitalize()}: {total:.2f}")
     else:
         print("No se pudo obtener los datos de la gráfica de consumos diarios.")
 
-# Ejemplo de uso
-fecha_inicial = "01/05/2024"
-fecha_final = "31/05/2024"
-codigo_nit =8300332063
-id_clientes = ["1196"]
+# Example usage
+fecha_inicial = "01/07/2024"
+fecha_final = "31/07/2024"
+codigo_nit = 8300332063
+id_clientes = ["1719"]
 
 consultar_grafica_consumos_diarios(fecha_inicial, fecha_final, codigo_nit, id_clientes)

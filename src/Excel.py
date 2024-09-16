@@ -27,7 +27,7 @@ def scrape_ettc_com_co_tarifas():
     mes_anterior = (datetime.now().replace(day=1) - pd.DateOffset(months=1)).month
     print(mes_anterior)
     # Nombres de los meses en español
-    meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"]
+    meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
     mes_anterior_nombre = meses[mes_anterior - 1]
     url = "https://www.enertotalesp.com/soporte-en-linea/tarifas-publicadas/"
     response= requests.get(url)
@@ -70,11 +70,12 @@ def scrape_ettc_com_co_tarifas():
             combined_df['Tm'] = Tm
             combined_df['Rm'] = Rm
             combined_df.columns = ['G', 'C', 'Pr', 'D', 'Cu', 'Tm', 'Rm']
-            
             combined_df = combined_df.reindex(columns=['G', 'Tm', 'D', 'Pr', 'C', 'Rm', 'Cu'])
-            output_file = 'ETTC.xlsx'
-            combined_df.to_excel(output_file, index=False)
-            print(f"Datos guardados en {output_file}")
+
+            array_of_arrays = combined_df.iloc[1:].values.tolist()
+
+            # Devolver la lista de listas
+            return array_of_arrays
         else:
             print("Error al descargar el PDF:", pdf_response.status_code)
             return None
@@ -238,6 +239,32 @@ def scrape_vatia_com_co_tarifas():
             anio_actual -= 1
     ciclo_value = f"{anio_actual}{mes:02d}"
     print(ciclo_value)
+    mapeo = {
+        "BAJO PUTUMAYO": "EBPD",
+        "ENERTOLIMA": "CTSD",
+        "EBSA": "EBSD",
+        "ELECTROHUILA": "HLAD",
+        "ELECTROMETA": "EMSD",
+        "ESSA": "ESSD",
+        "ELECTROCAQUETA": "CQTD",
+        "CENS": "CNSD",
+        "CETSA": "CETD",
+        "CEDENAR": "CDND",
+        "CARIBEMAR": "CMMD",
+        "CODENSA-EEC": "ENDD",
+        "CARIBESOL": "CSSD",
+        "EPM-EADE": "EPMD",
+        "CEDELCA": "CDID",
+        "CHEC": "CHCD",
+        "ENERCA": "CASD",
+        "EMCALI": "EMID",
+        "EMCARTAGO": "CTID",
+        "EDEQ": "EDQD",
+        "ENELAR": "ENID",
+        "EPSA": "EPSD",
+        "PUTUMAYO": "EPTD",
+        "EEP": "EEPD"
+    }
     driver.get("https://vatia.com.co/tarifas-costo-unitario-mercado-regulado/")
     time.sleep(15)
     
@@ -262,8 +289,11 @@ def scrape_vatia_com_co_tarifas():
         processed_data = []
         for data_list in all_data:
             if len(data_list) >= 18: 
+                data_list[5] = mapeo.get(data_list[5], data_list[5])
                 try:
                     processed_row = [  
+                        data_list[5],  # Campo mapeado
+                        data_list[6],
                         int(data_list[3]),
                         float(data_list[7]),
                         float(data_list[10]),
@@ -350,7 +380,7 @@ def scrape_bia_com_co_tarifas():
             subarrays = [reorganizado[i:i+9] for i in range(0, len(reorganizado), 9)]
             all_data.extend(subarrays)
 
-        time.sleep(0.5)
+        time.sleep(1)
         print(all_data)
     return all_data
     
@@ -399,16 +429,16 @@ def scrape_neu_com_co_tarifas():
                 datos_num.append(data_list)
             if all(char.isalpha() for char in ''.join(datos_num)):
                 continue
-        
+            print(datos_num)
             if len(datos_num) >= 9:  
                 filtered_data = [
                     datos_num[1],  # CU
-                    datos_num[3],  # G
-                    datos_num[4],  # T
-                    datos_num[5],  # D
+                    datos_num[2],  # G
+                    datos_num[3],  # T
+                    datos_num[4],  # D
                     datos_num[6],  # C
-                    datos_num[8],  # PR
-                    datos_num[9]   # R
+                    datos_num[7],  # PR
+                    datos_num[8]   # R
                 ]
                 datos_empresa.append(filtered_data)
 
@@ -418,24 +448,24 @@ def scrape_neu_com_co_tarifas():
                     datos_num[2],  # G
                     datos_num[3],  # T
                     datos_num[4],  # D
-                    datos_num[5],  # C
-                    datos_num[6],   # PR
-                    datos_num[7]   # R
+                    datos_num[6],  # C
+                    datos_num[7],   # PR
+                    datos_num[8]   # R
                 ]
                 datos_empresa.append(filtered_data)
-
+    
         for datos in datos_empresa:
             try:
                 reorganizado = [
                     additional_values[value_index],     # Valor adicional
-                    float(datos[1].replace(',', '.')),  # G
-                    float(datos[2].replace(',', '.')),  # T
-                    float(datos[3].replace(',', '.')),  # D
-                    float(datos[5].replace(',', '.')),  # PR
-                    float(datos[4].replace(',', '.')),  # C
-                    float(datos[6].replace(',', '.')),  # R
-                    float(datos[0].replace(',', '.')),  # CU
-                    float(datos[0].replace(',', '.'))   # CU (duplicado)
+                    float(datos[0].replace(',', '.')),  # G
+                    float(datos[1].replace(',', '.')),  # T
+                    float(datos[2].replace(',', '.')),  # D
+                    float(datos[4].replace(',', '.')),  # PR
+                    float(datos[3].replace(',', '.')),  # C
+                    float(datos[5].replace(',', '.')),  # R
+                    float(datos[6].replace(',', '.')),  # CU
+                    float(datos[6].replace(',', '.'))   # CU (duplicado)
                 ]
                 all_data.append(reorganizado)
                 value_index = (value_index + 1) % len(additional_values)  # Actualizar el índice
@@ -448,7 +478,7 @@ def scrape_neu_com_co_tarifas():
     return all_data
 
 
-def data_to_excel(scraped_data_rtqc,  scraped_data_bia, scraped_data_qia, scraped_data_vatia, scraped_data_neu):
+def data_to_excel( scraped_data_bia, scraped_data_qia, scraped_data_vatia, scraped_data_neu, scraped_data_ettc):
     workbook = Workbook()
     sheet = workbook.active
 
@@ -470,7 +500,7 @@ def data_to_excel(scraped_data_rtqc,  scraped_data_bia, scraped_data_qia, scrape
     meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"]
     previous_month_name = meses[previous_month - 1]
 
-    for i in range(2, len(scraped_data_rtqc)+ len(scraped_data_qia) + len(scraped_data_bia) + len(scraped_data_vatia) + len(scraped_data_neu)+2):
+    for i in range(2, len(scraped_data_ettc)+ len(scraped_data_qia) + len(scraped_data_bia) + len(scraped_data_vatia) + len(scraped_data_neu)+2):
         sheet.cell(row=i, column=1, value=formatted_date)
         if i < len(scraped_data_qia) + 2:
             sheet.cell(row=i, column=2, value="QIEC")
@@ -480,8 +510,9 @@ def data_to_excel(scraped_data_rtqc,  scraped_data_bia, scraped_data_qia, scrape
             sheet.cell(row=i, column=2, value="BIAC")
         elif i < len(scraped_data_qia) + len(scraped_data_neu)+ len(scraped_data_bia) +len(scraped_data_vatia)+2: 
             sheet.cell(row=i, column=2, value="GNCC")
-        elif i < len(scraped_data_qia) + len(scraped_data_neu)+ len(scraped_data_bia) +len(scraped_data_vatia)+len(scraped_data_rtqc)+2: 
-            sheet.cell(row=i, column=2, value="RTQC")
+        elif i < len(scraped_data_qia) + len(scraped_data_neu)+ len(scraped_data_bia) +len(scraped_data_vatia)+2+len(scraped_data_ettc): 
+            sheet.cell(row=i, column=2, value="ETTC")
+
 
     for row_index, row_values in enumerate(scraped_data_qia, start=2):
         for col_index, cell_value in enumerate(row_values, start=5):
@@ -496,10 +527,10 @@ def data_to_excel(scraped_data_rtqc,  scraped_data_bia, scraped_data_qia, scrape
             sheet.cell(row=row_index, column=col_index, value=cell_value)
 
     for row_index, row_values in enumerate(scraped_data_vatia, start=len(scraped_data_neu)+len(scraped_data_qia)+len(scraped_data_bia) +2):
-        for col_index, cell_value in enumerate(row_values, start=5):
+        for col_index, cell_value in enumerate(row_values, start=3):
             sheet.cell(row=row_index, column=col_index, value=cell_value)
-
-    for row_index, row_values in enumerate(scraped_data_rtqc, start=len(scraped_data_vatia)+len(scraped_data_neu)+len(scraped_data_qia)+len(scraped_data_bia) +2):
+            
+    for row_index, row_values in enumerate(scraped_data_ettc, start=len(scraped_data_vatia)+len(scraped_data_neu)+len(scraped_data_qia)+len(scraped_data_bia) +2):
         for col_index, cell_value in enumerate(row_values, start=5):
             sheet.cell(row=row_index, column=col_index, value=cell_value)
 
@@ -510,9 +541,9 @@ scraped_data_qia = scrape_qia_com_co_tarifas()
 scraped_data_vatia = scrape_vatia_com_co_tarifas()
 scraped_data_bia = scrape_bia_com_co_tarifas()
 scraped_data_neu=scrape_neu_com_co_tarifas() 
-scraped_data_rtqc=scrape_rtqc_com_co_tarifas()
+""" scraped_data_rtqc=scrape_rtqc_com_co_tarifas() """
+scraped_data_ettc=scrape_ettc_com_co_tarifas()
 
-
-data_to_excel(scraped_data_rtqc, scraped_data_bia, scraped_data_qia, scraped_data_vatia, scraped_data_neu)
+data_to_excel(scraped_data_ettc,scraped_data_bia, scraped_data_qia, scraped_data_vatia, scraped_data_neu)
 
 
