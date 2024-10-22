@@ -350,7 +350,7 @@ def scrape_bia_com_co_tarifas():
     company_elements = driver.find_elements(By.CLASS_NAME, 'tarifas-table-filter-item-dropdown-list-market-item')
     
     for index, company_element in enumerate(company_elements):
-        time.sleep(1)
+        time.sleep(2)
         company_element.click()
         time.sleep(1)
 
@@ -392,7 +392,7 @@ def scrape_neu_com_co_tarifas():
     time.sleep(10)
     dropdown_button = driver.find_element(By.CLASS_NAME, 'rs-picker-toggle')
     dropdown_button.click()
-    time.sleep(2)
+    time.sleep(5)
     
     all_data = []
     company_elements = driver.find_elements(By.CLASS_NAME, 'rs-picker-select-menu-item')
@@ -473,12 +473,11 @@ def scrape_neu_com_co_tarifas():
                 print(f"Error converting data to float: {e}")
         time.sleep(1)
 
-    driver.quit()
     print(all_data)
     return all_data
 
 
-def data_to_excel( scraped_data_bia, scraped_data_qia, scraped_data_vatia, scraped_data_neu, scraped_data_ettc):
+def data_to_excel( scraped_data_ettc,  scraped_data_neu, scraped_data_bia, scraped_data_vatia, scraped_data_qia ):
     workbook = Workbook()
     sheet = workbook.active
 
@@ -519,7 +518,7 @@ def data_to_excel( scraped_data_bia, scraped_data_qia, scraped_data_vatia, scrap
             sheet.cell(row=row_index, column=col_index, value=cell_value)
 
     for row_index, row_values in enumerate(scraped_data_neu, start=len(scraped_data_qia)+2):
-        for col_index, cell_value in enumerate(row_values, start=5):
+        for col_index, cell_value in enumerate(row_values, start=3):
             sheet.cell(row=row_index, column=col_index, value=cell_value) 
 
     for row_index, row_values in enumerate(scraped_data_bia, start=len(scraped_data_neu)+len(scraped_data_qia) +2):
@@ -527,7 +526,7 @@ def data_to_excel( scraped_data_bia, scraped_data_qia, scraped_data_vatia, scrap
             sheet.cell(row=row_index, column=col_index, value=cell_value)
 
     for row_index, row_values in enumerate(scraped_data_vatia, start=len(scraped_data_neu)+len(scraped_data_qia)+len(scraped_data_bia) +2):
-        for col_index, cell_value in enumerate(row_values, start=3):
+        for col_index, cell_value in enumerate(row_values, start=5):
             sheet.cell(row=row_index, column=col_index, value=cell_value)
             
     for row_index, row_values in enumerate(scraped_data_ettc, start=len(scraped_data_vatia)+len(scraped_data_neu)+len(scraped_data_qia)+len(scraped_data_bia) +2):
@@ -538,12 +537,11 @@ def data_to_excel( scraped_data_bia, scraped_data_qia, scraped_data_vatia, scrap
     driver.quit()
 
 scraped_data_qia = scrape_qia_com_co_tarifas()
-scraped_data_vatia = scrape_vatia_com_co_tarifas()
-scraped_data_bia = scrape_bia_com_co_tarifas()
 scraped_data_neu=scrape_neu_com_co_tarifas() 
-""" scraped_data_rtqc=scrape_rtqc_com_co_tarifas() """
+scraped_data_bia = scrape_bia_com_co_tarifas()
+scraped_data_vatia = scrape_vatia_com_co_tarifas()
 scraped_data_ettc=scrape_ettc_com_co_tarifas()
 
-data_to_excel(scraped_data_ettc,scraped_data_bia, scraped_data_qia, scraped_data_vatia, scraped_data_neu)
+data_to_excel(scraped_data_ettc,  scraped_data_neu, scraped_data_bia, scraped_data_vatia, scraped_data_qia )
 
 

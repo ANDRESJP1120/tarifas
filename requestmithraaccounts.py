@@ -109,7 +109,7 @@ def consultar_grafica_consumos_diarios(fecha_inicial, fecha_final, codigo_nit, i
 # Example usage
 fecha_inicial = "01/07/2024"
 fecha_final = "31/07/2024"
-codigo_nit = 8300332063
-id_clientes = ["1719"]
+codigo_nit = 9013838655
+id_clientes = ["1072"]
 
 consultar_grafica_consumos_diarios(fecha_inicial, fecha_final, codigo_nit, id_clientes)

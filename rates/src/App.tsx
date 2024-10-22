@@ -59,7 +59,7 @@ function App(): JSX.Element {
           customInput={<CustomInput />}
           className="datepicker"
           minDate={new Date(2024, 1, 1)}
-          maxDate={new Date(2024, 7, 31)}
+          maxDate={new Date(2024, 8, 31)}
         />
         <button className="download-btn" onClick={handleDownload}>DESCARGAR TARIFA DEL MES</button>
 
