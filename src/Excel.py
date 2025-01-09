@@ -7,6 +7,7 @@ from openpyxl import Workbook
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.action_chains import ActionChains
 from datetime import datetime
 from selenium.webdriver.support.ui import Select
 import pandas as pd
@@ -59,7 +60,7 @@ def scrape_ettc_com_co_tarifas():
             Rm = Rm.replace(',', '.')
             Tm = pd.to_numeric(Tm, errors='coerce')
             Rm = pd.to_numeric(Rm, errors='coerce')
-            combined_df = combined_df.iloc[4:]
+            combined_df = combined_df.iloc[3:]
             combined_df = combined_df.iloc[:, 11:-6]
             combined_df = combined_df.applymap(lambda x: x.replace(',', '.') if isinstance(x, str) else x)
             combined_df = combined_df.apply(pd.to_numeric, errors='coerce')
@@ -181,14 +182,14 @@ def scrape_qia_com_co_tarifas():
         
         if datos_pdf is not None:
             print("Datos extraídos con éxito:")
-            elemento_5 = datos_pdf[0][5]
+            elemento_5 = datos_pdf[1][5]
             print(elemento_5)
-            elemento_6 = datos_pdf[0][7]
+            elemento_6 = datos_pdf[1][7]
             print(elemento_6)
             elemento_anterior = None 
             all_rows = [] 
-            for index, row in enumerate(datos_pdf[2:98]):
-                print(datos_pdf[2:98])
+            for index, row in enumerate(datos_pdf[3:99]):
+                print(datos_pdf[1:99])
                 row.insert(6, elemento_5)
                 row.insert(7, elemento_6)
                 if not pd.isna(row[0]): 
@@ -229,14 +230,9 @@ def scrape_vatia_com_co_tarifas():
     ahora = datetime.now()
     mes_actual = ahora.month
     anio_actual = ahora.year
-
-    if ahora.day > 1:
-        mes = mes_actual-1
-    else:
-        mes = mes_actual - 2
-        if mes == 0:
-            mes = 12
-            anio_actual -= 1
+    mes = 12
+    if ahora.month < 12:
+        anio_actual -= 1
     ciclo_value = f"{anio_actual}{mes:02d}"
     print(ciclo_value)
     mapeo = {
@@ -267,10 +263,11 @@ def scrape_vatia_com_co_tarifas():
     }
     driver.get("https://vatia.com.co/tarifas-costo-unitario-mercado-regulado/")
     time.sleep(15)
-    
+   
     select_element = driver.find_element(By.ID, 'ciclo')
-    select = Select(select_element)
-    select.select_by_value(ciclo_value)
+    select_dropdown = Select(select_element)
+    select_dropdown.select_by_value(ciclo_value)
+    
     
     time.sleep(2) 
     
@@ -319,13 +316,9 @@ def scrape_bia_com_co_tarifas():
     ahora = datetime.now()
     mes_actual = ahora.month
     anio_actual = ahora.year
-    if ahora.day > 1:
-        mes = mes_actual-1
-    else:
-        mes = mes_actual - 2
-        if mes == 0:
-            mes = 12
-            anio_actual -= 1
+    mes = 12
+    if ahora.month < 12:
+        anio_actual -= 1
     ciclo_value = f"01-{mes:02d}-{anio_actual}"
 
     driver.get("https://www.bia.app/tarifas")
@@ -385,37 +378,35 @@ def scrape_bia_com_co_tarifas():
     return all_data
     
 def scrape_neu_com_co_tarifas():
-    driver.get("https://www.neu.com.co/tarifas")
+    driver.get("https://erco.energy/co/servicios/comercializacion/tarifas")
     time.sleep(1)
-    date_button = driver.find_elements(By.CLASS_NAME, 'rs-picker-toggle')
-    date_button[1].click()
+    date_input = driver.find_element(By.CLASS_NAME, 'rs-input')
     time.sleep(10)
     dropdown_button = driver.find_element(By.CLASS_NAME, 'rs-picker-toggle')
+    time.sleep(5)
     dropdown_button.click()
     time.sleep(5)
-    
     all_data = []
     company_elements = driver.find_elements(By.CLASS_NAME, 'rs-picker-select-menu-item')
     
-    # Índice para los valores adicionales
     additional_values = [1, 1, 1, 2, 3]
     value_index = 0
 
     for index, company_element in enumerate(company_elements):
         for _ in range(1):
             dropdown_button.send_keys(Keys.ARROW_DOWN)
-            time.sleep(1)
+            time.sleep(2)
 
         dropdown_button.send_keys(Keys.ENTER)
-        time.sleep(1)
+        time.sleep(4)
 
         updated_html = driver.page_source
-        time.sleep(1)
+        time.sleep(4)
         dropdown_button = driver.find_element(By.CLASS_NAME, 'rs-picker-toggle')
-        time.sleep(1)
+        time.sleep(4)
         dropdown_button.click()
         empresa_nombre = driver.find_element(By.TAG_NAME, 'span').text
-        time.sleep(1)
+        time.sleep(4)
         soup = BeautifulSoup(updated_html, 'html.parser')
 
         empresas = soup.find_all('div', class_='rs-table-row')
@@ -431,41 +422,48 @@ def scrape_neu_com_co_tarifas():
                 continue
             print(datos_num)
             if len(datos_num) >= 9:  
-                filtered_data = [
-                    datos_num[1],  # CU
-                    datos_num[2],  # G
-                    datos_num[3],  # T
-                    datos_num[4],  # D
-                    datos_num[6],  # C
-                    datos_num[7],  # PR
-                    datos_num[8]   # R
+                filtered_data = [ 
+                    datos_num[1],  # G
+                    datos_num[2],  # T
+                    datos_num[3],  # D
+                    datos_num[4],  # C
+                    datos_num[5],  # PR
+                    datos_num[6],   # R
+                    datos_num[7]  # CU
                 ]
                 datos_empresa.append(filtered_data)
 
             elif len(datos_num) >= 8:
                 filtered_data = [ 
-                    datos_num[1],  # CU
-                    datos_num[2],  # G
-                    datos_num[3],  # T
-                    datos_num[4],  # D
-                    datos_num[6],  # C
-                    datos_num[7],   # PR
-                    datos_num[8]   # R
+                     # CU
+                    datos_num[1],  # G
+                    datos_num[2],  # T
+                    datos_num[3],  # D
+                    datos_num[4],  # C
+                    datos_num[5],  # PR
+                    datos_num[6],
+                    datos_num[7]    # R
                 ]
                 datos_empresa.append(filtered_data)
     
         for datos in datos_empresa:
             try:
+                # Comprobación de longitud de la lista
+                if len(datos) < 8:
+                    print(f"Datos incompletos encontrados: {datos}")
+                    continue
+                
+                # Convertir los valores a flotantes de forma segura
                 reorganizado = [
                     additional_values[value_index],     # Valor adicional
-                    float(datos[0].replace(',', '.')),  # G
-                    float(datos[1].replace(',', '.')),  # T
-                    float(datos[2].replace(',', '.')),  # D
-                    float(datos[4].replace(',', '.')),  # PR
-                    float(datos[3].replace(',', '.')),  # C
-                    float(datos[5].replace(',', '.')),  # R
-                    float(datos[6].replace(',', '.')),  # CU
-                    float(datos[6].replace(',', '.'))   # CU (duplicado)
+                    float(datos[1].replace(',', '.') if ',' in datos[1] else datos[1]),  # G
+                    float(datos[2].replace(',', '.') if ',' in datos[2] else datos[2]),  # T
+                    float(datos[3].replace(',', '.') if ',' in datos[3] else datos[3]),  # D
+                    float(datos[4].replace(',', '.') if ',' in datos[4] else datos[4]),  # PR
+                    float(datos[5].replace(',', '.') if ',' in datos[5] else datos[5]),  # C
+                    float(datos[6].replace(',', '.') if ',' in datos[6] else datos[6]),  # R
+                    float(datos[7].replace(',', '.') if ',' in datos[7] else datos[7]),  # CU
+                    float(datos[7].replace(',', '.') if ',' in datos[7] else datos[7])   # CU (duplicado)
                 ]
                 all_data.append(reorganizado)
                 value_index = (value_index + 1) % len(additional_values)  # Actualizar el índice
@@ -475,12 +473,10 @@ def scrape_neu_com_co_tarifas():
 
     print(all_data)
     return all_data
+def data_to_excel(scraped_data_ettc, scraped_data_neu, scraped_data_bia, scraped_data_vatia, scraped_data_qia):
 
-
-def data_to_excel( scraped_data_ettc,  scraped_data_neu, scraped_data_bia, scraped_data_vatia, scraped_data_qia ):
     workbook = Workbook()
     sheet = workbook.active
-
     current_month_year = datetime.now().strftime("%B %Y")
     headers = [
         "PERIODO", "ID_AGENTE", "ID_MERCADO", "PROPIEDAD_ACTIVOS", "NIVEL_TENSION",
@@ -488,7 +484,6 @@ def data_to_excel( scraped_data_ettc,  scraped_data_neu, scraped_data_bia, scrap
         "TARIFA_PR", "TARIFA_Cv", "TARIFA_R", "TARIFA_CUv", "TARIFA_CU_APL", "COMPROBACION_CU", "COMPROBACION_T","COMPROBACION_R", 
         "COMPROBACION_D"
     ]
-
     sheet.append(headers)
 
     current_date = datetime.now()
@@ -512,13 +507,12 @@ def data_to_excel( scraped_data_ettc,  scraped_data_neu, scraped_data_bia, scrap
         elif i < len(scraped_data_qia) + len(scraped_data_neu)+ len(scraped_data_bia) +len(scraped_data_vatia)+2+len(scraped_data_ettc): 
             sheet.cell(row=i, column=2, value="ETTC")
 
-
     for row_index, row_values in enumerate(scraped_data_qia, start=2):
         for col_index, cell_value in enumerate(row_values, start=5):
             sheet.cell(row=row_index, column=col_index, value=cell_value)
 
     for row_index, row_values in enumerate(scraped_data_neu, start=len(scraped_data_qia)+2):
-        for col_index, cell_value in enumerate(row_values, start=3):
+        for col_index, cell_value in enumerate(row_values, start=5):
             sheet.cell(row=row_index, column=col_index, value=cell_value) 
 
     for row_index, row_values in enumerate(scraped_data_bia, start=len(scraped_data_neu)+len(scraped_data_qia) +2):
@@ -526,7 +520,7 @@ def data_to_excel( scraped_data_ettc,  scraped_data_neu, scraped_data_bia, scrap
             sheet.cell(row=row_index, column=col_index, value=cell_value)
 
     for row_index, row_values in enumerate(scraped_data_vatia, start=len(scraped_data_neu)+len(scraped_data_qia)+len(scraped_data_bia) +2):
-        for col_index, cell_value in enumerate(row_values, start=5):
+        for col_index, cell_value in enumerate(row_values, start=3):
             sheet.cell(row=row_index, column=col_index, value=cell_value)
             
     for row_index, row_values in enumerate(scraped_data_ettc, start=len(scraped_data_vatia)+len(scraped_data_neu)+len(scraped_data_qia)+len(scraped_data_bia) +2):

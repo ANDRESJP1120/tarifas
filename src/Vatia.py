@@ -13,14 +13,9 @@ def scrape_vatia_com_co_tarifas():
     ahora = datetime.now()
     mes_actual = ahora.month
     anio_actual = ahora.year
-
-    if ahora.day > 1:
-        mes = mes_actual-1
-    else:
-        mes = mes_actual - 2
-        if mes == 0:
-            mes = 12
-            anio_actual -= 1
+    mes = 10
+    if ahora.month < 10:
+        anio_actual -= 1
     ciclo_value = f"{anio_actual}{mes:02d}"
     print(ciclo_value)
     mapeo = {
@@ -51,10 +46,11 @@ def scrape_vatia_com_co_tarifas():
     }
     driver.get("https://vatia.com.co/tarifas-costo-unitario-mercado-regulado/")
     time.sleep(15)
-    
+   
     select_element = driver.find_element(By.ID, 'ciclo')
-    select = Select(select_element)
-    select.select_by_value(ciclo_value)
+    select_dropdown = Select(select_element)
+    select_dropdown.select_by_value(ciclo_value)
+    
     
     time.sleep(2) 
     

@@ -9,10 +9,11 @@ def scrape_ettc_com_co_tarifas():
     mes_actual = datetime.now().month
     print(mes_actual)
     mes_anterior = (datetime.now().replace(day=1) - pd.DateOffset(months=1)).month
-    print(mes_anterior)
+    
     # Nombres de los meses en español
-    meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "Agosto", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"]
-    mes_anterior_nombre = meses[mes_anterior - 1]
+    meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+    mes_anterior_nombre = meses[mes_anterior - 2]
+    print(mes_anterior_nombre)
     url = "https://www.enertotalesp.com/soporte-en-linea/tarifas-publicadas/"
     response= requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
@@ -36,15 +37,15 @@ def scrape_ettc_com_co_tarifas():
             dataframes = [pd.DataFrame(table[1:], columns=table[0]) for table in tables]
             
             combined_df = pd.concat(dataframes, ignore_index=True)
-            
             Tm = combined_df.iloc[2, 12]
             Rm = combined_df.iloc[2, 14]
             Tm = Tm.replace(',', '.')
             Rm = Rm.replace(',', '.')
             Tm = pd.to_numeric(Tm, errors='coerce')
             Rm = pd.to_numeric(Rm, errors='coerce')
-            combined_df = combined_df.iloc[4:]
-            combined_df = combined_df.iloc[:, 11:-6]
+            combined_df = combined_df.iloc[3:]
+            combined_df = combined_df.iloc[:, 11:-7]
+            print(combined_df)
             combined_df = combined_df.applymap(lambda x: x.replace(',', '.') if isinstance(x, str) else x)
             combined_df = combined_df.apply(pd.to_numeric, errors='coerce')
             combined_df = combined_df.dropna()
@@ -54,11 +55,12 @@ def scrape_ettc_com_co_tarifas():
             combined_df['Tm'] = Tm
             combined_df['Rm'] = Rm
             combined_df.columns = ['G', 'C', 'Pr', 'D', 'Cu', 'Tm', 'Rm']
-            
             combined_df = combined_df.reindex(columns=['G', 'Tm', 'D', 'Pr', 'C', 'Rm', 'Cu'])
-            output_file = 'ETTC.xlsx'
-            combined_df.to_excel(output_file, index=False)
-            print(f"Datos guardados en {output_file}")
+
+            array_of_arrays = combined_df.iloc[1:].values.tolist()
+
+            # Devolver la lista de listas
+            return array_of_arrays
         else:
             print("Error al descargar el PDF:", pdf_response.status_code)
             return None
