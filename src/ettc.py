@@ -9,11 +9,10 @@ def scrape_ettc_com_co_tarifas():
     mes_actual = datetime.now().month
     print(mes_actual)
     mes_anterior = (datetime.now().replace(day=1) - pd.DateOffset(months=1)).month
-    
+    print(mes_anterior)
     # Nombres de los meses en español
     meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
     mes_anterior_nombre = meses[mes_anterior - 2]
-    print(mes_anterior_nombre)
     url = "https://www.enertotalesp.com/soporte-en-linea/tarifas-publicadas/"
     response= requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
@@ -37,6 +36,7 @@ def scrape_ettc_com_co_tarifas():
             dataframes = [pd.DataFrame(table[1:], columns=table[0]) for table in tables]
             
             combined_df = pd.concat(dataframes, ignore_index=True)
+            
             Tm = combined_df.iloc[2, 12]
             Rm = combined_df.iloc[2, 14]
             Tm = Tm.replace(',', '.')
@@ -66,5 +66,6 @@ def scrape_ettc_com_co_tarifas():
             return None
     else:
         print("No se ha publicado tarifas para dicho mes")
+
 
 scraped_data_ettc=scrape_ettc_com_co_tarifas()

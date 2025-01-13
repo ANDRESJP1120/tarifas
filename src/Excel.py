@@ -182,14 +182,14 @@ def scrape_qia_com_co_tarifas():
         
         if datos_pdf is not None:
             print("Datos extraídos con éxito:")
-            elemento_5 = datos_pdf[1][5]
+            elemento_5 = datos_pdf[0][5]
             print(elemento_5)
-            elemento_6 = datos_pdf[1][7]
+            elemento_6 = datos_pdf[0][7]
             print(elemento_6)
             elemento_anterior = None 
             all_rows = [] 
-            for index, row in enumerate(datos_pdf[3:99]):
-                print(datos_pdf[1:99])
+            for index, row in enumerate(datos_pdf[2:98]):
+                print(datos_pdf[2:98])
                 row.insert(6, elemento_5)
                 row.insert(7, elemento_6)
                 if not pd.isna(row[0]): 
@@ -448,22 +448,17 @@ def scrape_neu_com_co_tarifas():
     
         for datos in datos_empresa:
             try:
-                # Comprobación de longitud de la lista
-                if len(datos) < 8:
-                    print(f"Datos incompletos encontrados: {datos}")
-                    continue
-                
                 # Convertir los valores a flotantes de forma segura
                 reorganizado = [
                     additional_values[value_index],     # Valor adicional
-                    float(datos[1].replace(',', '.') if ',' in datos[1] else datos[1]),  # G
-                    float(datos[2].replace(',', '.') if ',' in datos[2] else datos[2]),  # T
-                    float(datos[3].replace(',', '.') if ',' in datos[3] else datos[3]),  # D
-                    float(datos[4].replace(',', '.') if ',' in datos[4] else datos[4]),  # PR
-                    float(datos[5].replace(',', '.') if ',' in datos[5] else datos[5]),  # C
-                    float(datos[6].replace(',', '.') if ',' in datos[6] else datos[6]),  # R
-                    float(datos[7].replace(',', '.') if ',' in datos[7] else datos[7]),  # CU
-                    float(datos[7].replace(',', '.') if ',' in datos[7] else datos[7])   # CU (duplicado)
+                    float(datos[0].replace(',', '.') if ',' in datos[0] else datos[0]),  # G
+                    float(datos[1].replace(',', '.') if ',' in datos[1] else datos[1]),  # T
+                    float(datos[2].replace(',', '.') if ',' in datos[2] else datos[2]),  # D
+                    float(datos[3].replace(',', '.') if ',' in datos[3] else datos[3]),  # PR
+                    float(datos[4].replace(',', '.') if ',' in datos[4] else datos[4]),  # C
+                    float(datos[5].replace(',', '.') if ',' in datos[5] else datos[5]),  # R
+                    float(datos[6].replace(',', '.') if ',' in datos[6] else datos[6]),  # CU
+                    float(datos[6].replace(',', '.') if ',' in datos[6] else datos[6])   # CU (duplicado)
                 ]
                 all_data.append(reorganizado)
                 value_index = (value_index + 1) % len(additional_values)  # Actualizar el índice
