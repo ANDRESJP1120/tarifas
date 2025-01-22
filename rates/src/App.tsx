@@ -73,7 +73,7 @@ function App(): JSX.Element {
                 title="Historico de tarifas"
                 width="100%"
                 height="100%"
-                src="https://app.powerbi.com/reportEmbed?reportId=8e034c61-c319-41bd-b7c4-0f2e13131b4c&autoAuth=true&ctid=d539d4bf-5610-471a-afc2-1c76685cfefa"
+                src="https://app.powerbi.com/reportEmbed?reportId=e36e9aba-278f-4086-a0d0-7baa8538b3ae&autoAuth=true&ctid=b245367b-55a3-4d61-92d0-992b771e1d1f"
                 frameBorder="0"
                 allowFullScreen={true}
               ></iframe>
