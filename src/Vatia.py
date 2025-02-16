@@ -11,12 +11,15 @@ driver = webdriver.Chrome()
 def scrape_vatia_com_co_tarifas():
     # Obtener el mes y año actual
     ahora = datetime.now()
-    mes_actual = ahora.month
+    mes_anterior = ahora.month - 1
     anio_actual = ahora.year
-    mes = 10
-    if ahora.month < 10:
-        anio_actual -= 1
-    ciclo_value = f"{anio_actual}{mes:02d}"
+
+    if mes_anterior == 0:  # Si estamos en enero, retrocedemos a diciembre del año anterior
+     mes_anterior = 12
+     anio_actual -= 1
+
+    ciclo_value = f"{anio_actual}{mes_anterior:02d}"
+
     print(ciclo_value)
     mapeo = {
         "BAJO PUTUMAYO": "EBPD",

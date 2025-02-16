@@ -228,12 +228,15 @@ def scrape_qia_com_co_tarifas():
 def scrape_vatia_com_co_tarifas():
     # Obtener el mes y año actual
     ahora = datetime.now()
-    mes_actual = ahora.month
+    mes_anterior = ahora.month - 1
     anio_actual = ahora.year
-    mes = 12
-    if ahora.month < 12:
-        anio_actual -= 1
-    ciclo_value = f"{anio_actual}{mes:02d}"
+
+    if mes_anterior == 0:  # Si estamos en enero, retrocedemos a diciembre del año anterior
+     mes_anterior = 12
+     anio_actual -= 1
+
+    ciclo_value = f"{anio_actual}{mes_anterior:02d}"
+
     print(ciclo_value)
     mapeo = {
         "BAJO PUTUMAYO": "EBPD",
@@ -314,12 +317,14 @@ def scrape_vatia_com_co_tarifas():
 
 def scrape_bia_com_co_tarifas():
     ahora = datetime.now()
-    mes_actual = ahora.month
+    mes_anterior = ahora.month - 1
     anio_actual = ahora.year
-    mes = 12
-    if ahora.month < 12:
-        anio_actual -= 1
-    ciclo_value = f"01-{mes:02d}-{anio_actual}"
+
+    if mes_anterior == 0:  # Si estamos en enero, retrocedemos a diciembre del año anterior
+     mes_anterior = 12
+     anio_actual -= 1
+
+    ciclo_value = f"01-{mes_anterior:02d}-{anio_actual}"
 
     driver.get("https://www.bia.app/tarifas")
     time.sleep(1)
@@ -328,6 +333,9 @@ def scrape_bia_com_co_tarifas():
     dropdown_buttons[0].click()
     time.sleep(1)
     
+    slide_element = driver.find_element(By.ID, 'slider-arrow-right')
+    slide_element.click()
+    time.sleep(2)
     slide_element = driver.find_element(By.ID, 'slider-arrow-right')
     slide_element.click()
     time.sleep(2)

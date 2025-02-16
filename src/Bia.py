@@ -11,17 +11,17 @@ driver = webdriver.Chrome()
 
 def scrape_bia_com_co_tarifas():
     ahora = datetime.now()
-    mes_actual = ahora.month
+    mes_anterior = ahora.month - 1
     anio_actual = ahora.year
-    if ahora.day > 1:
-        mes = mes_actual-1
-    else:
-        mes = mes_actual - 2
-        if mes == 0:
-            mes = 12
-            anio_actual -= 1
-    ciclo_value = f"01-{mes:02d}-{anio_actual}"
-
+    print(mes_anterior)
+    if mes_anterior == 0:  # Si estamos en enero, retrocedemos a diciembre del año anterior
+     mes_anterior = 12
+     anio_actual -= 1
+    nombres_meses = [
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+    ciclo_value = f"{nombres_meses[mes_anterior - 1]}, {anio_actual}"
+    print(ciclo_value)
     driver.get("https://www.bia.app/tarifas")
     time.sleep(1)
 
@@ -29,6 +29,9 @@ def scrape_bia_com_co_tarifas():
     dropdown_buttons[0].click()
     time.sleep(1)
     
+    slide_element = driver.find_element(By.ID, 'slider-arrow-right')
+    slide_element.click()
+    time.sleep(2)
     slide_element = driver.find_element(By.ID, 'slider-arrow-right')
     slide_element.click()
     time.sleep(2)

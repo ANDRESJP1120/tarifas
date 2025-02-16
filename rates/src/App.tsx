@@ -20,7 +20,7 @@ function App(): JSX.Element {
   const handleDownload = () => {
     const month = startDate.getMonth();
     const year = startDate.getFullYear();
-    if (year >= 2024 && month >= 1) { // Febrero es el mes 1
+    if (year >= 2025 && month >= 0) { // Febrero es el mes 1
       const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
       const formattedMonth = monthNames[month];
       const formattedYear = year.toString(); // Obtener los últimos dos dígitos del año
@@ -59,7 +59,7 @@ function App(): JSX.Element {
           customInput={<CustomInput />}
           className="datepicker"
           minDate={new Date(2024, 1, 1)}
-          maxDate={new Date(2024, 12, 31)}
+          maxDate={new Date(2025, 1, 31)}
         />
         <button className="download-btn" onClick={handleDownload}>DESCARGAR TARIFA DEL MES</button>
 
