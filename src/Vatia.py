@@ -14,6 +14,7 @@ def scrape_vatia_com_co_tarifas():
     mes_anterior = ahora.month - 1
     anio_actual = ahora.year
 
+    
     if mes_anterior == 0:  # Si estamos en enero, retrocedemos a diciembre del año anterior
      mes_anterior = 12
      anio_actual -= 1
