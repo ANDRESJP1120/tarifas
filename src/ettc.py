@@ -7,12 +7,9 @@ from datetime import datetime
 
 def scrape_ettc_com_co_tarifas():
     mes_actual = datetime.now().month
-    print(mes_actual)
     mes_anterior = (datetime.now().replace(day=1) - pd.DateOffset(months=1)).month
-    print(mes_anterior)
-    # Nombres de los meses en español
     meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
-    mes_anterior_nombre = meses[mes_anterior - 2]
+    mes_anterior_nombre = meses[mes_anterior - 1]
     url = "https://www.enertotalesp.com/soporte-en-linea/tarifas-publicadas/"
     response= requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
@@ -41,19 +38,19 @@ def scrape_ettc_com_co_tarifas():
             Rm = combined_df.iloc[2, 14]
             Tm = Tm.replace(',', '.')
             Rm = Rm.replace(',', '.')
+            print(Tm,Rm )
             Tm = pd.to_numeric(Tm, errors='coerce')
             Rm = pd.to_numeric(Rm, errors='coerce')
-            combined_df = combined_df.iloc[3:]
+            combined_df = combined_df.iloc[3:-2]
             combined_df = combined_df.iloc[:, 11:-7]
             print(combined_df)
             combined_df = combined_df.applymap(lambda x: x.replace(',', '.') if isinstance(x, str) else x)
             combined_df = combined_df.apply(pd.to_numeric, errors='coerce')
             combined_df = combined_df.dropna()
-
-
             print(combined_df)
             combined_df['Tm'] = Tm
             combined_df['Rm'] = Rm
+            
             combined_df.columns = ['G', 'C', 'Pr', 'D', 'Cu', 'Tm', 'Rm']
             combined_df = combined_df.reindex(columns=['G', 'Tm', 'D', 'Pr', 'C', 'Rm', 'Cu'])
 
@@ -66,6 +63,7 @@ def scrape_ettc_com_co_tarifas():
             return None
     else:
         print("No se ha publicado tarifas para dicho mes")
+
 
 
 scraped_data_ettc=scrape_ettc_com_co_tarifas()

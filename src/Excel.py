@@ -24,10 +24,7 @@ driver = webdriver.Chrome()
 
 def scrape_ettc_com_co_tarifas():
     mes_actual = datetime.now().month
-    print(mes_actual)
     mes_anterior = (datetime.now().replace(day=1) - pd.DateOffset(months=1)).month
-    print(mes_anterior)
-    # Nombres de los meses en español
     meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
     mes_anterior_nombre = meses[mes_anterior - 1]
     url = "https://www.enertotalesp.com/soporte-en-linea/tarifas-publicadas/"
@@ -58,18 +55,19 @@ def scrape_ettc_com_co_tarifas():
             Rm = combined_df.iloc[2, 14]
             Tm = Tm.replace(',', '.')
             Rm = Rm.replace(',', '.')
+            print(Tm,Rm )
             Tm = pd.to_numeric(Tm, errors='coerce')
             Rm = pd.to_numeric(Rm, errors='coerce')
-            combined_df = combined_df.iloc[3:]
-            combined_df = combined_df.iloc[:, 11:-6]
+            combined_df = combined_df.iloc[3:-2]
+            combined_df = combined_df.iloc[:, 11:-7]
+            print(combined_df)
             combined_df = combined_df.applymap(lambda x: x.replace(',', '.') if isinstance(x, str) else x)
             combined_df = combined_df.apply(pd.to_numeric, errors='coerce')
             combined_df = combined_df.dropna()
-
-
             print(combined_df)
             combined_df['Tm'] = Tm
             combined_df['Rm'] = Rm
+            
             combined_df.columns = ['G', 'C', 'Pr', 'D', 'Cu', 'Tm', 'Rm']
             combined_df = combined_df.reindex(columns=['G', 'Tm', 'D', 'Pr', 'C', 'Rm', 'Cu'])
 
@@ -82,6 +80,7 @@ def scrape_ettc_com_co_tarifas():
             return None
     else:
         print("No se ha publicado tarifas para dicho mes")
+
 
 def scrape_rtqc_com_co_tarifas():
     mes_actual = datetime.now().month
@@ -174,7 +173,7 @@ def scrape_qia_com_co_tarifas():
             rows = []
             for table in tables:
                 for index, row in table.iterrows():
-                    rows.append(row.tolist()[2:10])
+                    rows.append(row.tolist()[2:11])
             datos_pdf = rows 
         else:
             print("Error al descargar el PDF:", response.status_code)
@@ -182,9 +181,9 @@ def scrape_qia_com_co_tarifas():
         
         if datos_pdf is not None:
             print("Datos extraídos con éxito:")
-            elemento_5 = datos_pdf[0][5]
+            elemento_5 = datos_pdf[0][6]
             print(elemento_5)
-            elemento_6 = datos_pdf[0][7]
+            elemento_6 = datos_pdf[0][8]
             print(elemento_6)
             elemento_anterior = None 
             all_rows = [] 
@@ -280,29 +279,28 @@ def scrape_vatia_com_co_tarifas():
 
     try:
         celdas = soup.find('table').find('tbody').find_all('td')
-        for i in range(0, len(celdas), 18):
-            row_data = celdas[i:i+18]
+        time.sleep(2) 
+        for i in range(0, len(celdas), 17):
+            row_data = celdas[i:i+17]
             data_list = [cell.text.strip() for cell in row_data]
             all_data.append(data_list)
-        
-        # Procesa los datos
         processed_data = []
         for data_list in all_data:
-            if len(data_list) >= 18: 
-                data_list[5] = mapeo.get(data_list[5], data_list[5])
+            if len(data_list) >= 17: 
+                data_list[1] = mapeo.get(data_list[1], data_list[1])
                 try:
                     processed_row = [  
-                        data_list[5],  # Campo mapeado
-                        data_list[6],
-                        int(data_list[3]),
+                        data_list[1],  # Campo mapeado
+                        data_list[3],
+                        int(data_list[2]),
+                        float(data_list[4]),
                         float(data_list[7]),
-                        float(data_list[10]),
-                        float(data_list[11]),
-                        float(data_list[9]),
                         float(data_list[8]),
-                        float(data_list[12]),
-                        float(data_list[14]), 
-                        float(data_list[14])
+                        float(data_list[6]),
+                        float(data_list[5]),
+                        float(data_list[9]),
+                        float(data_list[10]), 
+                        float(data_list[10])
                     ]
                     processed_data.append(processed_row)
                 except ValueError as e:
