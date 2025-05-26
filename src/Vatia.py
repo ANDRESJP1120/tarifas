@@ -11,7 +11,7 @@ driver = webdriver.Chrome()
 def scrape_vatia_com_co_tarifas():
     # Obtener el mes y año actual
     ahora = datetime.now()
-    mes_anterior = ahora.month - 2
+    mes_anterior = ahora.month - 1
     anio_actual = ahora.year
 
     if mes_anterior == 0:  # Si estamos en enero, retrocedemos a diciembre del año anterior
@@ -48,7 +48,7 @@ def scrape_vatia_com_co_tarifas():
         "EEP": "EEPD"
     }
     driver.get("https://vatia.com.co/tarifas-costo-unitario-mercado-regulado/")
-    time.sleep(15)
+    time.sleep(55)
    
     select_element = driver.find_element(By.ID, 'ciclo')
     select_dropdown = Select(select_element)
@@ -64,31 +64,33 @@ def scrape_vatia_com_co_tarifas():
     try:
         celdas = soup.find('table').find('tbody').find_all('td')
         time.sleep(2) 
-        for i in range(0, len(celdas), 17):
-            row_data = celdas[i:i+17]
+        for i in range(0, len(celdas), 18):
+            row_data = celdas[i:i+18]
             data_list = [cell.text.strip() for cell in row_data]
             all_data.append(data_list)
+            print(all_data)
         processed_data = []
         for data_list in all_data:
+            
             if len(data_list) >= 17: 
-                data_list[1] = mapeo.get(data_list[1], data_list[1])
+                data_list[5] = mapeo.get(data_list[5], data_list[5])
                 try:
                     processed_row = [  
-                        data_list[1],  # Campo mapeado
-                        int(data_list[2]),
-                        data_list[3],
-                        float(data_list[4]),
+                        data_list[5],  # Campo mapeado
+                        data_list[6],
+                        (data_list[3]),
                         float(data_list[7]),
-                        float(data_list[8]),
-                        float(data_list[6]),
-                        float(data_list[5]),
+                        float(data_list[10]),
+                        float(data_list[11]),
                         float(data_list[9]),
-                        float(data_list[10]), 
-                        float(data_list[10])
+                        float(data_list[8]),
+                        float(data_list[12]),
+                        float(data_list[14]), 
+                        float(data_list[14])
                     ]
                     processed_data.append(processed_row)
                 except ValueError as e:
-                    print(f"Error al procesar la fila: {data_list} - {e}")
+                    print(f"Error al procesar la fila: {e}")
 
     except Exception as e:
         print("Error durante la extracción de datos:", e)
@@ -100,6 +102,5 @@ def scrape_vatia_com_co_tarifas():
     df.to_excel("tarifas_vatia.xlsx", index=False)
 
     print("Datos guardados en tarifas_vatia.xlsx")
-    return processed_data
 # Llama a la función
 scrape_vatia_com_co_tarifas()

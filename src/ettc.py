@@ -9,15 +9,20 @@ def scrape_ettc_com_co_tarifas():
     mes_actual = datetime.now().month
     mes_anterior = (datetime.now().replace(day=1) - pd.DateOffset(months=1)).month
     meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
-    mes_anterior_nombre = meses[mes_anterior - 1]
-    url = "https://www.enertotalesp.com/soporte-en-linea/tarifas-publicadas/"
+    mes_anterior_nombre = meses[mes_anterior - 2]
+    url = "https://www.enertotalesp.com/tarifas"
     response= requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
-    link_abril = soup.find('a', text=mes_anterior_nombre)
-    if link_abril:
-        pdf_url = link_abril['href']
-        print("Extrayendo datos del PDF...")
+    link_abril = soup.find('a', string=lambda s: s and mes_anterior_nombre in s)
+    print(link_abril)
 
+    if link_abril:
+        href = link_abril['href']
+        if href.startswith('/'):
+            pdf_url = f"https://www.enertotalesp.com{href}"
+        else:
+            pdf_url = href
+        print("Extrayendo datos del PDF...")
         pdf_response = requests.get(pdf_url)
         if pdf_response.status_code == 200:
             pdf_path = 'temp.pdf'

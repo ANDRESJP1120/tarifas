@@ -26,15 +26,20 @@ def scrape_ettc_com_co_tarifas():
     mes_actual = datetime.now().month
     mes_anterior = (datetime.now().replace(day=1) - pd.DateOffset(months=1)).month
     meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
-    mes_anterior_nombre = meses[mes_anterior - 1]
-    url = "https://www.enertotalesp.com/soporte-en-linea/tarifas-publicadas/"
+    mes_anterior_nombre = meses[mes_anterior - 2]
+    url = "https://www.enertotalesp.com/tarifas"
     response= requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
-    link_abril = soup.find('a', text=mes_anterior_nombre)
-    if link_abril:
-        pdf_url = link_abril['href']
-        print("Extrayendo datos del PDF...")
+    link_abril = soup.find('a', string=lambda s: s and mes_anterior_nombre in s)
+    print(link_abril)
 
+    if link_abril:
+        href = link_abril['href']
+        if href.startswith('/'):
+            pdf_url = f"https://www.enertotalesp.com{href}"
+        else:
+            pdf_url = href
+        print("Extrayendo datos del PDF...")
         pdf_response = requests.get(pdf_url)
         if pdf_response.status_code == 200:
             pdf_path = 'temp.pdf'
@@ -88,7 +93,7 @@ def scrape_rtqc_com_co_tarifas():
     
     # Nombres de los meses en español
     meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"]
-    mes_anterior_nombre = meses[mes_anterior - 1]
+    mes_anterior_nombre = meses[mes_anterior - 2]
     url = "https://www.ruitoqueesp.com/nuevo/servicios/energia/"
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
@@ -151,7 +156,7 @@ def scrape_rtqc_com_co_tarifas():
 
 
 
-def scrape_qia_com_co_tarifas():
+""" def scrape_qia_com_co_tarifas():
     mes_actual = datetime.now().month
     print(mes_actual)
     mes_anterior = (datetime.now().replace(day=1) - pd.DateOffset(months=1)).month
@@ -175,20 +180,21 @@ def scrape_qia_com_co_tarifas():
                 for index, row in table.iterrows():
                     rows.append(row.tolist()[2:11])
             datos_pdf = rows 
+            print(datos_pdf)
         else:
             print("Error al descargar el PDF:", response.status_code)
             return None
         
         if datos_pdf is not None:
             print("Datos extraídos con éxito:")
-            elemento_5 = datos_pdf[0][6]
+            elemento_5 = datos_pdf[2][3]
             print(elemento_5)
-            elemento_6 = datos_pdf[0][8]
+            elemento_6 = datos_pdf[2][5]
             print(elemento_6)
             elemento_anterior = None 
             all_rows = [] 
-            for index, row in enumerate(datos_pdf[2:98]):
-                print(datos_pdf[2:98])
+            for index, row in enumerate(datos_pdf[8:98]):
+                print(datos_pdf[8:98])
                 row.insert(6, elemento_5)
                 row.insert(7, elemento_6)
                 if not pd.isna(row[0]): 
@@ -222,12 +228,12 @@ def scrape_qia_com_co_tarifas():
             print("No se pudieron extraer datos del PDF.")
     else:
         print("No se encontró el enlace del mes")
-
+ """
 
 def scrape_vatia_com_co_tarifas():
     # Obtener el mes y año actual
     ahora = datetime.now()
-    mes_anterior = ahora.month - 1
+    mes_anterior = ahora.month - 2
     anio_actual = ahora.year
 
     if mes_anterior == 0:  # Si estamos en enero, retrocedemos a diciembre del año anterior
@@ -264,7 +270,7 @@ def scrape_vatia_com_co_tarifas():
         "EEP": "EEPD"
     }
     driver.get("https://vatia.com.co/tarifas-costo-unitario-mercado-regulado/")
-    time.sleep(15)
+    time.sleep(60)
    
     select_element = driver.find_element(By.ID, 'ciclo')
     select_dropdown = Select(select_element)
@@ -280,8 +286,8 @@ def scrape_vatia_com_co_tarifas():
     try:
         celdas = soup.find('table').find('tbody').find_all('td')
         time.sleep(2) 
-        for i in range(0, len(celdas), 17):
-            row_data = celdas[i:i+17]
+        for i in range(0, len(celdas), 18):
+            row_data = celdas[i:i+18]
             data_list = [cell.text.strip() for cell in row_data]
             all_data.append(data_list)
         processed_data = []
@@ -290,17 +296,17 @@ def scrape_vatia_com_co_tarifas():
                 data_list[1] = mapeo.get(data_list[1], data_list[1])
                 try:
                     processed_row = [  
-                        data_list[1],  # Campo mapeado
-                        data_list[3],
-                        int(data_list[2]),
-                        float(data_list[4]),
+                        data_list[5],  # Campo mapeado
+                        data_list[6],
+                        (data_list[3]),
                         float(data_list[7]),
-                        float(data_list[8]),
-                        float(data_list[6]),
-                        float(data_list[5]),
+                        float(data_list[10]),
+                        float(data_list[11]),
                         float(data_list[9]),
-                        float(data_list[10]), 
-                        float(data_list[10])
+                        float(data_list[8]),
+                        float(data_list[12]),
+                        float(data_list[14]), 
+                        float(data_list[14])
                     ]
                     processed_data.append(processed_row)
                 except ValueError as e:
@@ -315,7 +321,7 @@ def scrape_vatia_com_co_tarifas():
 
 def scrape_bia_com_co_tarifas():
     ahora = datetime.now()
-    mes_anterior = ahora.month - 1
+    mes_anterior = ahora.month - 2
     anio_actual = ahora.year
 
     if mes_anterior == 0:  # Si estamos en enero, retrocedemos a diciembre del año anterior
@@ -474,7 +480,7 @@ def scrape_neu_com_co_tarifas():
 
     print(all_data)
     return all_data
-def data_to_excel(scraped_data_ettc, scraped_data_neu, scraped_data_bia, scraped_data_vatia, scraped_data_qia):
+def data_to_excel(scraped_data_ettc, scraped_data_neu, scraped_data_bia, scraped_data_vatia):
 
     workbook = Workbook()
     sheet = workbook.active
@@ -488,55 +494,49 @@ def data_to_excel(scraped_data_ettc, scraped_data_neu, scraped_data_bia, scraped
     sheet.append(headers)
 
     current_date = datetime.now()
-    previous_month = current_date.month - 1 if current_date.month > 1 else 12
+    previous_month = current_date.month - 2 if current_date.month > 1 else 12
     previous_year = current_date.year if current_date.month > 1 else current_date.year - 1
     formatted_date = f"{previous_year}{previous_month:02d}"
 
     meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"]
     previous_month_name = meses[previous_month - 1]
 
-    for i in range(2, len(scraped_data_ettc)+ len(scraped_data_qia) + len(scraped_data_bia) + len(scraped_data_vatia) + len(scraped_data_neu)+2):
+    for i in range(2, len(scraped_data_ettc)+  len(scraped_data_bia) + len(scraped_data_vatia) + len(scraped_data_neu)+2):
         sheet.cell(row=i, column=1, value=formatted_date)
-        if i < len(scraped_data_qia) + 2:
-            sheet.cell(row=i, column=2, value="QIEC")
-        elif i < len(scraped_data_qia) +len(scraped_data_neu) + 2:
+        if i < len(scraped_data_neu) + 2:
             sheet.cell(row=i, column=2, value="NEUC")
-        elif i < len(scraped_data_qia) + len(scraped_data_neu)+ len(scraped_data_bia) +2:
+        elif i <  len(scraped_data_neu)+ len(scraped_data_bia) +2:
             sheet.cell(row=i, column=2, value="BIAC")
-        elif i < len(scraped_data_qia) + len(scraped_data_neu)+ len(scraped_data_bia) +len(scraped_data_vatia)+2: 
+        elif i <  len(scraped_data_neu)+ len(scraped_data_bia) +len(scraped_data_vatia)+2: 
             sheet.cell(row=i, column=2, value="GNCC")
-        elif i < len(scraped_data_qia) + len(scraped_data_neu)+ len(scraped_data_bia) +len(scraped_data_vatia)+2+len(scraped_data_ettc): 
+        elif i <  len(scraped_data_neu)+ len(scraped_data_bia) +len(scraped_data_vatia)+2+len(scraped_data_ettc): 
             sheet.cell(row=i, column=2, value="ETTC")
 
-    for row_index, row_values in enumerate(scraped_data_qia, start=2):
+    for row_index, row_values in enumerate(scraped_data_neu, start=2):
         for col_index, cell_value in enumerate(row_values, start=5):
             sheet.cell(row=row_index, column=col_index, value=cell_value)
 
-    for row_index, row_values in enumerate(scraped_data_neu, start=len(scraped_data_qia)+2):
-        for col_index, cell_value in enumerate(row_values, start=5):
-            sheet.cell(row=row_index, column=col_index, value=cell_value) 
-
-    for row_index, row_values in enumerate(scraped_data_bia, start=len(scraped_data_neu)+len(scraped_data_qia) +2):
+    for row_index, row_values in enumerate(scraped_data_bia, start=len(scraped_data_neu) +2):
         for col_index, cell_value in enumerate(row_values, start=5):
             sheet.cell(row=row_index, column=col_index, value=cell_value)
 
-    for row_index, row_values in enumerate(scraped_data_vatia, start=len(scraped_data_neu)+len(scraped_data_qia)+len(scraped_data_bia) +2):
+    for row_index, row_values in enumerate(scraped_data_vatia, start=len(scraped_data_neu)+len(scraped_data_bia) +2):
         for col_index, cell_value in enumerate(row_values, start=3):
             sheet.cell(row=row_index, column=col_index, value=cell_value)
             
-    for row_index, row_values in enumerate(scraped_data_ettc, start=len(scraped_data_vatia)+len(scraped_data_neu)+len(scraped_data_qia)+len(scraped_data_bia) +2):
+    for row_index, row_values in enumerate(scraped_data_ettc, start=len(scraped_data_vatia)+len(scraped_data_neu)+len(scraped_data_bia) +2):
         for col_index, cell_value in enumerate(row_values, start=5):
             sheet.cell(row=row_index, column=col_index, value=cell_value)
 
     workbook.save(f"{previous_month_name}.xlsx")
     driver.quit()
 
-scraped_data_qia = scrape_qia_com_co_tarifas()
+""" scraped_data_qia = scrape_qia_com_co_tarifas() """
 scraped_data_neu=scrape_neu_com_co_tarifas() 
 scraped_data_bia = scrape_bia_com_co_tarifas()
 scraped_data_vatia = scrape_vatia_com_co_tarifas()
 scraped_data_ettc=scrape_ettc_com_co_tarifas()
 
-data_to_excel(scraped_data_ettc,  scraped_data_neu, scraped_data_bia, scraped_data_vatia, scraped_data_qia )
+data_to_excel(scraped_data_ettc,  scraped_data_neu, scraped_data_bia, scraped_data_vatia)
 
 
