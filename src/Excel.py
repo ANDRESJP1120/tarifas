@@ -26,7 +26,7 @@ def scrape_ettc_com_co_tarifas():
     mes_actual = datetime.now().month
     mes_anterior = (datetime.now().replace(day=1) - pd.DateOffset(months=1)).month
     meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
-    mes_anterior_nombre = meses[mes_anterior - 2]
+    mes_anterior_nombre = meses[mes_anterior - 1]
     url = "https://www.enertotalesp.com/tarifas"
     response= requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
@@ -64,7 +64,7 @@ def scrape_ettc_com_co_tarifas():
             Tm = pd.to_numeric(Tm, errors='coerce')
             Rm = pd.to_numeric(Rm, errors='coerce')
             combined_df = combined_df.iloc[3:-2]
-            combined_df = combined_df.iloc[:, 11:-7]
+            combined_df = combined_df.iloc[:, 11:-6]
             print(combined_df)
             combined_df = combined_df.applymap(lambda x: x.replace(',', '.') if isinstance(x, str) else x)
             combined_df = combined_df.apply(pd.to_numeric, errors='coerce')
@@ -233,7 +233,7 @@ def scrape_rtqc_com_co_tarifas():
 def scrape_vatia_com_co_tarifas():
     # Obtener el mes y año actual
     ahora = datetime.now()
-    mes_anterior = ahora.month - 2
+    mes_anterior = ahora.month - 1
     anio_actual = ahora.year
 
     if mes_anterior == 0:  # Si estamos en enero, retrocedemos a diciembre del año anterior
@@ -321,7 +321,7 @@ def scrape_vatia_com_co_tarifas():
 
 def scrape_bia_com_co_tarifas():
     ahora = datetime.now()
-    mes_anterior = ahora.month - 2
+    mes_anterior = ahora.month - 1
     anio_actual = ahora.year
 
     if mes_anterior == 0:  # Si estamos en enero, retrocedemos a diciembre del año anterior
