@@ -494,7 +494,7 @@ def data_to_excel(scraped_data_ettc, scraped_data_neu, scraped_data_bia, scraped
     sheet.append(headers)
 
     current_date = datetime.now()
-    previous_month = current_date.month - 2 if current_date.month > 1 else 12
+    previous_month = current_date.month - 1 if current_date.month > 1 else 12
     previous_year = current_date.year if current_date.month > 1 else current_date.year - 1
     formatted_date = f"{previous_year}{previous_month:02d}"
 
