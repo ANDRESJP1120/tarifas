@@ -156,11 +156,9 @@ def scrape_rtqc_com_co_tarifas():
 
 
 
-""" def scrape_qia_com_co_tarifas():
+def scrape_qia_com_co_tarifas():
     mes_actual = datetime.now().month
-    print(mes_actual)
     mes_anterior = (datetime.now().replace(day=1) - pd.DateOffset(months=1)).month
-    print(mes_anterior)
     # Nombres de los meses en español
     meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"]
     mes_anterior_nombre = meses[mes_anterior - 1]
@@ -178,7 +176,7 @@ def scrape_rtqc_com_co_tarifas():
             rows = []
             for table in tables:
                 for index, row in table.iterrows():
-                    rows.append(row.tolist()[2:11])
+                    rows.append(row.tolist()[1:11])
             datos_pdf = rows 
             print(datos_pdf)
         else:
@@ -187,16 +185,16 @@ def scrape_rtqc_com_co_tarifas():
         
         if datos_pdf is not None:
             print("Datos extraídos con éxito:")
-            elemento_5 = datos_pdf[2][3]
+            elemento_5 = datos_pdf[0][5]
             print(elemento_5)
-            elemento_6 = datos_pdf[2][5]
+            elemento_6 = datos_pdf[0][7]
             print(elemento_6)
             elemento_anterior = None 
             all_rows = [] 
-            for index, row in enumerate(datos_pdf[8:98]):
-                print(datos_pdf[8:98])
-                row.insert(6, elemento_5)
-                row.insert(7, elemento_6)
+            for index, row in enumerate(datos_pdf[2:94]):
+                print(datos_pdf[2:93])
+                row.insert(7, elemento_5)
+                row.insert(8, elemento_6)
                 if not pd.isna(row[0]): 
                     elemento_anterior = row[0]  
                 else:
@@ -209,7 +207,7 @@ def scrape_rtqc_com_co_tarifas():
                 else:
                     numero = None  
                     modified_row = [numero]  
-                for item in row[1:8]:
+                for item in row[1:9]:
                     if isinstance(item, str): 
                         modified_row.append(float(item.replace(',', '.')))
                     else:
@@ -218,17 +216,14 @@ def scrape_rtqc_com_co_tarifas():
             
             organized_rows = []
             for row in all_rows:
-                organized_row = [row[0], row[1], row[6], row[2],  row[4], row[3],  row[7],  row[5], row[5]]
+                organized_row = [row[0], row[1], row[7], row[2], row[4], row[3],  row[8],  row[6], row[6]]
                 organized_rows.append(organized_row)
-                print(organized_rows) 
-                print(mes_actual)
-                print(mes_anterior)
             return organized_rows 
         else:
             print("No se pudieron extraer datos del PDF.")
     else:
         print("No se encontró el enlace del mes")
- """
+
 
 def scrape_vatia_com_co_tarifas():
     # Obtener el mes y año actual
@@ -480,7 +475,7 @@ def scrape_neu_com_co_tarifas():
 
     print(all_data)
     return all_data
-def data_to_excel(scraped_data_ettc, scraped_data_neu, scraped_data_bia, scraped_data_vatia):
+def data_to_excel(scraped_data_ettc, scraped_data_neu, scraped_data_bia, scraped_data_vatia, scraped_data_qia):
 
     workbook = Workbook()
     sheet = workbook.active
@@ -488,8 +483,7 @@ def data_to_excel(scraped_data_ettc, scraped_data_neu, scraped_data_bia, scraped
     headers = [
         "PERIODO", "ID_AGENTE", "ID_MERCADO", "PROPIEDAD_ACTIVOS", "NIVEL_TENSION",
         "TARIFA_G", "TARIFA_T", "TARIFA_D",
-        "TARIFA_PR", "TARIFA_Cv", "TARIFA_R", "TARIFA_CUv", "TARIFA_CU_APL", "COMPROBACION_CU", "COMPROBACION_T","COMPROBACION_R", 
-        "COMPROBACION_D"
+        "TARIFA_PR", "TARIFA_Cv", "TARIFA_R", "TARIFA_CUv", "TARIFA_CU_APL", "COMPROBACION_CU", "COMPROBACION_T","COMPROBACION_R"
     ]
     sheet.append(headers)
 
@@ -501,7 +495,7 @@ def data_to_excel(scraped_data_ettc, scraped_data_neu, scraped_data_bia, scraped
     meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"]
     previous_month_name = meses[previous_month - 1]
 
-    for i in range(2, len(scraped_data_ettc)+  len(scraped_data_bia) + len(scraped_data_vatia) + len(scraped_data_neu)+2):
+    for i in range(2, len(scraped_data_ettc)+  len(scraped_data_qia)+len(scraped_data_bia) + len(scraped_data_vatia) + len(scraped_data_neu)+2):
         sheet.cell(row=i, column=1, value=formatted_date)
         if i < len(scraped_data_neu) + 2:
             sheet.cell(row=i, column=2, value="NEUC")
@@ -511,6 +505,8 @@ def data_to_excel(scraped_data_ettc, scraped_data_neu, scraped_data_bia, scraped
             sheet.cell(row=i, column=2, value="GNCC")
         elif i <  len(scraped_data_neu)+ len(scraped_data_bia) +len(scraped_data_vatia)+2+len(scraped_data_ettc): 
             sheet.cell(row=i, column=2, value="ETTC")
+        elif i <  len(scraped_data_qia)+  len(scraped_data_neu)+ len(scraped_data_bia) +len(scraped_data_vatia)+2+len(scraped_data_ettc): 
+            sheet.cell(row=i, column=2, value="QIEC")
 
     for row_index, row_values in enumerate(scraped_data_neu, start=2):
         for col_index, cell_value in enumerate(row_values, start=5):
@@ -527,16 +523,19 @@ def data_to_excel(scraped_data_ettc, scraped_data_neu, scraped_data_bia, scraped
     for row_index, row_values in enumerate(scraped_data_ettc, start=len(scraped_data_vatia)+len(scraped_data_neu)+len(scraped_data_bia) +2):
         for col_index, cell_value in enumerate(row_values, start=5):
             sheet.cell(row=row_index, column=col_index, value=cell_value)
+    for row_index, row_values in enumerate(scraped_data_qia, start=len(scraped_data_ettc)+len(scraped_data_vatia)+len(scraped_data_neu)+len(scraped_data_bia) +2):
+        for col_index, cell_value in enumerate(row_values, start=5):
+            sheet.cell(row=row_index, column=col_index, value=cell_value)
 
     workbook.save(f"{previous_month_name}.xlsx")
     driver.quit()
 
-""" scraped_data_qia = scrape_qia_com_co_tarifas() """
+scraped_data_qia = scrape_qia_com_co_tarifas()
 scraped_data_neu=scrape_neu_com_co_tarifas() 
 scraped_data_bia = scrape_bia_com_co_tarifas()
 scraped_data_vatia = scrape_vatia_com_co_tarifas()
 scraped_data_ettc=scrape_ettc_com_co_tarifas()
 
-data_to_excel(scraped_data_ettc,  scraped_data_neu, scraped_data_bia, scraped_data_vatia)
+data_to_excel(scraped_data_ettc,  scraped_data_neu, scraped_data_bia, scraped_data_vatia, scraped_data_bia)
 
 
